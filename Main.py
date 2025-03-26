@@ -11,6 +11,7 @@ gamma = 1.4
 beta_tt = 1.6
 eta_initial = 0.9
 hub_to_tip = 0.3
+RPM = 5000 #rpm
 
 P_t0 = P_ISA * (1 + ((gamma-1)/2)*M_inf**2) ** ((gamma-1)/gamma)
 T_t0 = T_ISA * (1 + ((gamma-1)/2)*M_inf**2)
@@ -33,5 +34,12 @@ print(rho_1)
 
 R_t = np.sqrt(A_fan/(np.pi * (1 -  hub_to_tip**2)))
 print(R_t)
+
+##tip mach number
+omega = RPM * 2 * np.pi /  60
+U_tip = R_t * omega
+M_tip = U_tip / a_1
+print(M_tip)
+
 
 
