@@ -20,7 +20,7 @@ def computeVelocityTrianglesWithAlpha1Known(psi: float, phi: float, alpha1: floa
     
     return alpha2, beta1, beta2, R
 
-def  computeVelocityTrianglesWithRKnown(psi: float, phi: float, R: float) -> tuple[float, float, float, float]: 
+def computeVelocityTrianglesWithRKnown(psi: float, phi: float, R: float) -> tuple[float, float, float, float]: 
     alpha1 = np.atan(-1 * ( ((R + psi/2 - 1)/ phi)  ))
     beta2  : float = np.atan( (psi + phi * np.tan(alpha1) - 1) / phi)
     beta1  : float = np.atan( np.tan(alpha1) - 1 / phi)
@@ -59,7 +59,7 @@ def drawVelocityTriangles(alpha1: float, alpha2: float, beta1: float, beta2: flo
     plt.show()
 
 
-def getPropertiesAfterStage(Tin: float, Pin: float, rhoIn: float, C1mag: float, omega: float, rMean: float, alpha1: float, alpha2: float, cp: float, k: float = 1.4, etaIso: float = 1) -> tuple[float,float,float,float]:
+def getPropertiesAfterStage(Tin: float, Pin: float, rhoIn: float, C1mag: float, omega: float, rMean: float, alpha1: float, alpha2: float, cp: float, k: float = 1.4, etaIso: float = 1, R: float = 287.05) -> tuple[float,float,float,float]:
     U = omega * rMean #assuming constant radius
     Ca = C1mag * np.cos(alpha1)
     
@@ -69,14 +69,14 @@ def getPropertiesAfterStage(Tin: float, Pin: float, rhoIn: float, C1mag: float, 
     T03is = Tin + DeltaTis
     T03   = Tin + DeltaT
     
-    P03 = (T03is/T03) ** (k / (k-1)) * Pin
-    rho03 = (T03is/T03) ** (1 / (k-1)) * rhoIn
+    P03 = (T03is/Tin) ** (k / (k-1)) * Pin
+    rho03 = P03 / (R * T0)
     
     
     return T03, P03, rho03, P03/Pin
 
 
-def getStagnationInletProperties(h: float, M: float, k: float = 1.4) -> tuple[float, float, float]:
+def getStagnationInletProperties(h: float, M: float, k: float = 1.4, R: float = 287.05) -> tuple[float, float, float]:
     atmoConditions = Atmosphere(h)
     T = atmoConditions.temperature
     P = atmoConditions.pressure
@@ -90,8 +90,21 @@ def getStagnationInletProperties(h: float, M: float, k: float = 1.4) -> tuple[fl
     
 
 if __name__ == "__main__":
-    alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(0.3954,0.5633,0.5)
+    alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(0.5,0.5,0.5)
     print(np.degrees(alpha1),np.degrees(alpha2),np.degrees(beta1),np.degrees(beta2))
     
+    T0, P0, rho0 = getStagnationInletProperties(10e3,0.78)
     
-    drawVelocityTriangles(alpha1,alpha2,beta1,beta2)
+    T03, P03, rho03, OPR =  getPropertiesAfterStage(
+        Tin = T0,
+        Pin = P0,
+        rhoIn = rho0,
+        C1mag = 0.6 * 295, # this is not correct exactly
+        omega = 5000 * 2 * np.pi / 60,
+        rMean = 0.7,
+        alpha1 = alpha1,
+        alpha2 = alpha2,
+        cp = 1006,
+    )
+    print(T03, P03, rho03, OPR)
+    #drawVelocityTriangles(alpha1,alpha2,beta1,beta2)
