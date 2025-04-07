@@ -70,7 +70,7 @@ def getStaticProperties(C: float, T0: float, P0: float, k : float = 1.4, R : flo
     
     return T,P,rho
     
-def getPropertiesAfterStage(T0in: float, P0in: float, C1mag: float, omega: float, rMean: float, alpha1: float, alpha2: float, reaction: float ,cp: float, k: float = 1.4, etaIso: float = 1, R: float = 287.05) -> tuple[float,float,float,float]:
+def getPropertiesAfterStage(T0in: float, P0in: float, C1mag: float, omega: float, rMean: float, alpha1: float, alpha2: float, reaction: float ,cp: float = 1006, k: float = 1.4, etaIso: float = 1, R: float = 287.05) -> tuple[float,float,float,float]:
     U = omega * rMean #assuming constant radius
     Ca = C1mag * np.cos(alpha1)
     
@@ -96,7 +96,7 @@ def getPropertiesAfterStage(T0in: float, P0in: float, C1mag: float, omega: float
     T3, P3, rho3 = getStaticProperties(C1mag,T03,P03)
     Trotor, Protor, rhoRotor = getStaticProperties(C2mag,T0Rotor,P0Rotor)
     
-    return T03, P03, rho03, P03/P0in , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, P0Rotor/P0in, Trotor, Protor, rhoRotor
+    return T03, P03, rho03, P03/P0in , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, P0Rotor/P0in, Trotor, Protor, rhoRotor, DeltaT, DeltaTis
 
 
 def getStagnationInletProperties(h: float, M: float, k: float = 1.4, R: float = 287.05) -> tuple[float, float, float]:
@@ -114,16 +114,19 @@ def getStagnationInletProperties(h: float, M: float, k: float = 1.4, R: float = 
 def calculatePower(mdot: float, T0out: float, T0in: float, cp: float):
     return mdot * cp * (T0out - T0in)
 
-def getStageEfficiencies(P0in: float, P03: float, P3: float):
+def getStageEfficiencies(DeltaT: float, DeltaTis: float, c1: float, cp : float = 1006 ):
     #returns total-to-total and total-to-static
-    return P03/P0in , P3/P0in
-
+    tt = DeltaTis/DeltaT
+    ts = (cp * DeltaTis) / (cp * DeltaT + 1/2 * c1**2) #!!!!!!!!!!!!!!!!!!!!!!!!!! I am really not sure this is actually correct
+    
+    return tt, ts
+    
 if __name__ == "__main__":
     alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(0.5,0.5,0.5)
     
     T0, P0, rho0 = getStagnationInletProperties(10e3,0.78)
     
-    T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor =  getPropertiesAfterStage(
+    T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, DeltaT, DeltaTis =  getPropertiesAfterStage(
         T0in = T0,
         P0in = P0,
         C1mag = 0.6 * 295, # this is not correct exactly just for reference
@@ -133,9 +136,10 @@ if __name__ == "__main__":
         alpha2 = alpha2,
         reaction= 0.5,
         cp = 1006,
+        etaIso = 1.0
     )
     
-    etaTtT, etaTtS = getStageEfficiencies(P0,P03,P3)
+    etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,0.6 * 295)
     
 
     print(f"-------------------------------------------------")
@@ -160,7 +164,7 @@ if __name__ == "__main__":
     print(f"P3           [Pa]: {P3[0]:>10.2f}")
     print(f"rho3      [kg/m3]: {rho3[0]:>10.2f}")
     print(f"PR Total      [-]: {PRTotal[0]:>10.2f}")
-    print(f"eta TtT       [-]: {etaTtT[0]:>10.2f}")
-    print(f"eta TtS       [-]: {etaTtS[0]:>10.2f}")
+    print(f"eta TtT       [-]: {etaTtT:>10.2f}")
+    print(f"eta TtS       [-]: {etaTtS:>10.2f}")
     print(f"-------------------------------------------------")
     #drawVelocityTriangles(alpha1,alpha2,beta1,beta2)
