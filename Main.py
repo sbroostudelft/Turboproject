@@ -27,7 +27,7 @@ print("P_t1 = ",P_t1)
 print("T_t1 = ",T_t1)
 
 
-### Area calculations
+## Area calculations
 rho_1 = rho_ISA * ( (1 + 0.5 * (gamma-1) * M_ax**2) / (1 + 0.5 * (gamma-1) * M_inf**2) )**(-1/(gamma-1))
 T_1 = T_ISA * ( (1 + 0.5 * (gamma-1) * M_ax**2) / (1 + 0.5 * (gamma-1) * M_inf**2) )**(-1)
 a_1 = np.sqrt(gamma * R * T_1)
@@ -39,9 +39,9 @@ R_t = np.sqrt(A_fan/(np.pi * (1 -  hub_to_tip**2)))
 print(R_t)
 
 ##tip mach number
-omega = RPM * 2 * np.pi/60
+omega = RPM * 2 * np.pi /  60
 U_tip = R_t * omega
-M_tip = ((U_tip / a_1)**2 + 0.36)**(0.5)
+M_tip = U_tip / a_1
 print(M_tip)
 
 
