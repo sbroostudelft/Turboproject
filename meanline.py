@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 from ambiance import Atmosphere
+from scipy.optimize import fsolve
 
 def getMeanLineRadius(rTip: float, hubToTip: float): #area average
     rHub: float =  rTip * hubToTip
@@ -59,21 +60,43 @@ def drawVelocityTriangles(alpha1: float, alpha2: float, beta1: float, beta2: flo
     plt.show()
 
 
-def getPropertiesAfterStage(Tin: float, Pin: float, rhoIn: float, C1mag: float, omega: float, rMean: float, alpha1: float, alpha2: float, cp: float, k: float = 1.4, etaIso: float = 1, R: float = 287.05) -> tuple[float,float,float,float]:
+def getStaticProperties(C: float, T0: float, P0: float, k : float = 1.4, R : float = 287.05):
+    def solve(T):
+        return T0 / T - (1 + (k-1)/2 * (C / np.sqrt(k*R*T))**2 )
+    
+    T = fsolve(solve,T0)
+    P = (T/T0) ** (k / (k-1)) * P0
+    rho = P / R / T
+    
+    return T,P,rho
+    
+def getPropertiesAfterStage(T0in: float, P0in: float, C1mag: float, omega: float, rMean: float, alpha1: float, alpha2: float, reaction: float ,cp: float, k: float = 1.4, etaIso: float = 1, R: float = 287.05) -> tuple[float,float,float,float]:
     U = omega * rMean #assuming constant radius
     Ca = C1mag * np.cos(alpha1)
+    
+    C2mag = Ca / np.cos(alpha2)
     
     DeltaTis = U * Ca / cp * (np.tan(alpha2) - np.tan(alpha1)) 
     DeltaT = DeltaTis / etaIso
     
-    T03is = Tin + DeltaTis
-    T03   = Tin + DeltaT
+    T03is = T0in + DeltaTis
+    T03   = T0in + DeltaT
     
-    P03 = (T03is/Tin) ** (k / (k-1)) * Pin
-    rho03 = P03 / (R * T0)
+    T0RotorIs = T0in + DeltaTis * reaction
+    T0Rotor   = T0in + DeltaT * reaction
+    
+    P03 = (T03is/T0in) ** (k / (k-1)) * P0in
+    rho03 = P03 / (R * T03)
     
     
-    return T03, P03, rho03, P03/Pin
+    P0Rotor = (T0RotorIs/T0in) ** (k / (k-1)) * P0in
+    rho0Rotor = P0Rotor / (R * T0Rotor)
+    
+    
+    T3, P3, rho3 = getStaticProperties(C1mag,T03,P03)
+    Trotor, Protor, rhoRotor = getStaticProperties(C2mag,T0Rotor,P0Rotor)
+    
+    return T03, P03, rho03, P03/P0in , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, P0Rotor/P0in, Trotor, Protor, rhoRotor
 
 
 def getStagnationInletProperties(h: float, M: float, k: float = 1.4, R: float = 287.05) -> tuple[float, float, float]:
@@ -88,23 +111,56 @@ def getStagnationInletProperties(h: float, M: float, k: float = 1.4, R: float = 
     
     return T0, P0, rho0
     
+def calculatePower(mdot: float, T0out: float, T0in: float, cp: float):
+    return mdot * cp * (T0out - T0in)
+
+def getStageEfficiencies(P0in: float, P03: float, P3: float):
+    #returns total-to-total and total-to-static
+    return P03/P0in , P3/P0in
 
 if __name__ == "__main__":
     alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(0.5,0.5,0.5)
-    print(np.degrees(alpha1),np.degrees(alpha2),np.degrees(beta1),np.degrees(beta2))
     
     T0, P0, rho0 = getStagnationInletProperties(10e3,0.78)
     
-    T03, P03, rho03, OPR =  getPropertiesAfterStage(
-        Tin = T0,
-        Pin = P0,
-        rhoIn = rho0,
-        C1mag = 0.6 * 295, # this is not correct exactly
+    T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor =  getPropertiesAfterStage(
+        T0in = T0,
+        P0in = P0,
+        C1mag = 0.6 * 295, # this is not correct exactly just for reference
         omega = 5000 * 2 * np.pi / 60,
         rMean = 0.7,
         alpha1 = alpha1,
         alpha2 = alpha2,
+        reaction= 0.5,
         cp = 1006,
     )
-    print(T03, P03, rho03, OPR)
+    
+    etaTtT, etaTtS = getStageEfficiencies(P0,P03,P3)
+    
+
+    print(f"-------------------------------------------------")
+    print(f"alpha1      [deg]: {np.degrees(alpha1):>10.2f}")
+    print(f"beta1       [deg]: {np.degrees(beta1):>10.2f}")
+    print(f"alpha2      [deg]: {np.degrees(alpha2):>10.2f}")
+    print(f"beta2       [deg]: {np.degrees(beta2):>10.2f}")
+    print(f"T0            [K]: {T0[0]:>10.2f}")
+    print(f"P0           [Pa]: {P0[0]:>10.2f}")
+    print(f"rho0      [kg/m3]: {rho0[0]:>10.2f}")
+    print(f"T0Rotor       [K]: {T0Rotor[0]:>10.2f}")
+    print(f"P0Rotor      [Pa]: {P0Rotor[0]:>10.2f}")
+    print(f"rho0Rotor [kg/m3]: {rho0Rotor[0]:>10.2f}")
+    print(f"TRotor        [K]: {Trotor[0]:>10.2f}")
+    print(f"PRotor       [Pa]: {Protor[0]:>10.2f}")
+    print(f"rhoRotor  [kg/m3]: {rhoRotor[0]:>10.2f}")
+    print(f"PR Rotor      [-]: {PRRotor[0]:>10.2f}")
+    print(f"T03           [K]: {T03[0]:>10.2f}")
+    print(f"P03          [Pa]: {P03[0]:>10.2f}")
+    print(f"rho03     [kg/m3]: {rho03[0]:>10.2f}")
+    print(f"T3            [K]: {T3[0]:>10.2f}")
+    print(f"P3           [Pa]: {P3[0]:>10.2f}")
+    print(f"rho3      [kg/m3]: {rho3[0]:>10.2f}")
+    print(f"PR Total      [-]: {PRTotal[0]:>10.2f}")
+    print(f"eta TtT       [-]: {etaTtT[0]:>10.2f}")
+    print(f"eta TtS       [-]: {etaTtS[0]:>10.2f}")
+    print(f"-------------------------------------------------")
     #drawVelocityTriangles(alpha1,alpha2,beta1,beta2)
