@@ -58,7 +58,7 @@ def get_repeated_stage_efficiency(phi, lam, r):
     values = np.array([values_r0p5, values_r0p7, values_r0p9])
 
     # Interpolate efficiency corresponding to given set of duty coefficients.
-    eta_tt = interpn(points, values, point)
+    eta_tt = interpn(points, values, point).item()
 
     if eta_tt < eta_tt_min:
         eta_tt = eta_tt_min
