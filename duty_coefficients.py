@@ -18,6 +18,7 @@ def calculate_duty_coefficients(M_u: float, beta_tt: float = 1.6, gamma: float =
     def negative_eff(phi):
         return -get_repeated_stage_efficiency(phi, 2*work_coeff, degree_of_reaction)
 
+    "Finding optimum efficiency"
     optimum = minimize_scalar(negative_eff, bounds=(0.1, 1.0), method="bounded")
     flow_coeff = optimum.x
     max_eta = -optimum.fun
