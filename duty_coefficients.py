@@ -37,3 +37,4 @@ if __name__ == "__main__":
 
     #Calculate work coefficients
     psi, phi, DOR = calculate_duty_coefficients(M_u_1)
+
