@@ -3,11 +3,8 @@ import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 from ambiance import Atmosphere
 from scipy.optimize import fsolve
-import os
-import subprocess
-from textwrap import dedent
-import time
 from Meangen_control import run_meangen, run_stagen
+import os
 
 
 def getMeanLineRadius(rTip: float, hubToTip: float): #area average
@@ -132,33 +129,63 @@ def getStageEfficiencies(DeltaT: float, DeltaTis: float, c1: float, cp : float =
 
 
 if __name__ == "__main__":
-    alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(0.5,0.5,0.5)
+    #user input
     
-    T0, P0, rho0 = getStagnationInletProperties(10e3,0.78)
+    psi = 0.395
+    phi = 0.563
+    DOR = 0.8
+    
+    altitude = 10e3 #[m]
+    Minf = 0.78 
+    
+    C1mag = 0.6 * 295 # [m/s] this is not correct exactly just for reference
+    omega = 5000 #[rpm]
+    
+    hubToTip = 0.3
+    rTip = 2 #[m]
+    
+    etaIso = 1
+    
+    
+    # ---------------------------
+    
+    rMean = getMeanLineRadius(rTip,hubToTip)
+    
+    alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(psi,phi,DOR)
+    
+    T0, P0, rho0 = getStagnationInletProperties(altitude,Minf)
     
     T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, DeltaT, DeltaTis =  getPropertiesAfterStage(
         T0in = T0,
         P0in = P0,
-        C1mag = 0.6 * 295, # this is not correct exactly just for reference
-        omega = 5000 * 2 * np.pi / 60,
+        C1mag = C1mag,
+        omega = omega * 2 * np.pi / 60,
         rMean = 0.7,
         alpha1 = alpha1,
         alpha2 = alpha2,
-        reaction= 0.5,
+        reaction= DOR,
         cp = 1006,
-        etaIso = 1.0
+        etaIso = etaIso
     )
     
-    etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,0.6 * 295)
+    etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
 
 
     #Run Meangen & Stagen
-    path_of_user = "C:/Users/sambr/Documents/CODING/Turbo/Multall package/BS Multall package/Windows executables/"
-    run_meangen(path_of_user, P0[0], T0[0], 0.5, 0.5, 0.5, 10e3)
+    dirPath = os.path.dirname(os.path.realpath(__file__))
+
+    
+    if os.name == "posix":
+        path_of_user = os.path.join(dirPath,"multallExecutables","Linux",)
+    else:
+        path_of_user = os.path.join(dirPath,"multallExecutables","Windows",)
+    
+    run_meangen(path_of_user, round(P0[0]/1e5,3), round(T0[0],3), DOR, phi, psi, 38.4)
     run_stagen(path_of_user)
     
 
     print(f"-------------------------------------------------")
+    print(f"rMean       [deg]: {rMean:>10.2f}")
     print(f"alpha1      [deg]: {np.degrees(alpha1):>10.2f}")
     print(f"beta1       [deg]: {np.degrees(beta1):>10.2f}")
     print(f"alpha2      [deg]: {np.degrees(alpha2):>10.2f}")

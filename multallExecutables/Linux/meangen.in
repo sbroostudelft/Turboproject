@@ -1,30 +1,15 @@
-import os
-import subprocess
-from textwrap import dedent
-import time
-
-"""Runs Meangen"""
-
-def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, H):
-    """Runs Meangen"""
-    # %% Inputs
-    filename = "meangen.in"
-    os.chdir(path_of_user)
-
-    path = os.path.join(path_of_user,filename)
-
-    template = f"""C                        TURBO_TYP,"C" FOR A COMPRESSOR,"T" FOR A TURBINE
+C                        TURBO_TYP,"C" FOR A COMPRESSOR,"T" FOR A TURBINE
     AXI                      FLO_TYP FOR AXIAL OR MIXED FLOW MACHINE
        287.000     1.400     GAS PROPERTOES, RGAS, GAMMA
-       {P0_01}   {T0_01}     POIN,  TOIN
+       0.396   250.417     POIN,  TOIN
        1                    NUMBER OF STAGES IN THE MACHINE
     M                        CHOICE OF DESIGN POINT RADIUS, HUB, MID or TIP
        5000             ROTATION SPEED, RPM
        80.00             MASS FLOW RATE, FLOWIN.
     A                        INTYPE, TO CHOOSE THE METHOD OF DEFINING THE VELOCITY TRIANGLES
-      {R}  {PHI}  {PSI}    REACTION, FLOW COEFF., LOADING COEFF.
+      0.8  0.563  0.395    REACTION, FLOW COEFF., LOADING COEFF.
     B                        RADTYPE, TO CHOOSE THE DESIGN POINT RADIUS
-           {H}           ENTHALPY CHANGE IN KJ/KG
+           38.4           ENTHALPY CHANGE IN KJ/KG
            0.0440   0.0806 BLADE AXIAL CHORDS IN METRES.
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
        0.00000   0.02000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
@@ -47,56 +32,3 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, H):
     Y    ROTOR No.   2 SET ANSTK = "Y" TO USE THE SAME  BLADE SECTIONS AS THE LAST STAGE
     Y    STATOR No.  3 SET ANSTK = "Y" TO USE THE SAME  BLADE SECTIONS AS THE LAST STAGE
     Y    ROTOR No.   3 SET ANSTK = "Y" TO USE THE SAME  BLADE SECTIONS AS THE LAST STAGE
-    """
-
-    template = dedent(template)
-
-    with open(path, "w") as input_file:
-        input_file.write(template)
-        input_file.close()
-
-    exe_path = os.path.join(path_of_user,"meangen-17.4.exe")
-
-    subprocess.run(
-        exe_path,
-        input="F\n",
-        cwd=path_of_user,
-        text=True,
-        shell=True  # Only if you need shell features
-    )
-
-    time.sleep(1.5)
-
-    stagen_path = os.path.join(path_of_user,"stagen.dat")
-    with open(stagen_path, 'r') as file:
-        lines = file.readlines()
-
-
-    for i, line in enumerate(lines):
-        if i == 1:
-            lines[i] = line.replace('37', '30')
-
-    # Write the modified content back to the file
-    with open(stagen_path, 'w') as file:
-        file.writelines(lines)
-
-    print("Meangen ran correctly (or not)")
-
-
-def run_stagen(path_of_user):
-    os.chdir(path_of_user)
-    exe_path = os.path.join(path_of_user,"stagen-18.1.exe")
-
-    subprocess.run(
-        exe_path,
-        input="Y\n",
-        cwd=path_of_user,
-        text=True,
-        shell=True
-    )
-    print("Stagen ran correctly")
-
-
-
-
-
