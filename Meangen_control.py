@@ -5,7 +5,7 @@ import time
 
 """Runs Meangen"""
 
-def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, H):
+def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot):
     """Runs Meangen"""
     # %% Inputs
     filename = "meangen.in"
@@ -20,14 +20,14 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, H):
        1                    NUMBER OF STAGES IN THE MACHINE
     M                        CHOICE OF DESIGN POINT RADIUS, HUB, MID or TIP
        5000             ROTATION SPEED, RPM
-       80.00             MASS FLOW RATE, FLOWIN.
+       {mdot}             MASS FLOW RATE, FLOWIN.
     A                        INTYPE, TO CHOOSE THE METHOD OF DEFINING THE VELOCITY TRIANGLES
       {R}  {PHI}  {PSI}    REACTION, FLOW COEFF., LOADING COEFF.
-    B                        RADTYPE, TO CHOOSE THE DESIGN POINT RADIUS
-           {H}           ENTHALPY CHANGE IN KJ/KG
+    A                        RADTYPE, TO CHOOSE THE DESIGN POINT RADIUS
+           {rMean}           ENTHALPY CHANGE IN KJ/KG
            0.0440   0.0806 BLADE AXIAL CHORDS IN METRES.
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
-       0.00000   0.02000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
+       0.00000   0.00000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
            0.9351             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
        5.5   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
        0.2147  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
