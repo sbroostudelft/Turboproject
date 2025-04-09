@@ -130,6 +130,19 @@ def getMassFlow(hubToTip: float, rTip: float, rho:float, AxialSpeed:float):
     rHub = rTip * hubToTip
     return np.pi * (rTip**2 - rHub**2) * AxialSpeed * rho
 
+def getRelativeMachNumbers(hubToTip: float, rTip: float, AxialSpeed:float, omega: float, a: float):
+    rHub = rTip * hubToTip   
+    rMean = getMeanLineRadius(rTip,hubToTip)
+    
+    omegaRad = (omega * 2 * np.pi / 60)
+    
+    VrelHub = np.sqrt(AxialSpeed**2 + (omegaRad * rHub)**2) 
+    VrelMean = np.sqrt(AxialSpeed**2 + (omegaRad * rMean)**2) 
+    VrelTip = np.sqrt(AxialSpeed**2 + (omegaRad * rTip)**2) 
+    
+    
+    return VrelHub/a, VrelMean/a, VrelTip/a
+    
 
 
 
@@ -148,7 +161,7 @@ if __name__ == "__main__":
     omega = 5000 #[rpm]
     
     hubToTip = 0.3
-    rTip = 0.57 #[m]
+    rTip = 0.581 #[m]
     
     etaIso = 1
     
@@ -165,6 +178,8 @@ if __name__ == "__main__":
     T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf)
     
     T2, P2, rho2 = getStaticProperties(C1mag,T02,P02)
+    
+    MrelHub, MrelMean, MrelTip = getRelativeMachNumbers(hubToTip,rTip,C1mag,omega,np.sqrt(1.4 * 287 * T2)) 
     
     mdot = getMassFlow(hubToTip,rTip,rho2,C1mag)
     
@@ -215,6 +230,9 @@ if __name__ == "__main__":
     print(f"rho02      [kg/m3]: {rho02[0]:>10.2f}")
     print(f"T2            [K]: {T2[0]:>10.2f}")
     print(f"P2           [Pa]: {P2[0]:>10.2f}")
+    print(f"MrelHub       [-]: {MrelHub[0]:>10.2f}")
+    print(f"MrelMean      [-]: {MrelMean[0]:>10.2f}")
+    print(f"MrelTip       [-]: {MrelTip[0]:>10.2f}")
     print(f"rho2      [kg/m3]: {rho2[0]:>10.2f}")
     print(f"T0Rotor       [K]: {T0Rotor[0]:>10.2f}")
     print(f"P0Rotor      [Pa]: {P0Rotor[0]:>10.2f}")
