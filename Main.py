@@ -28,7 +28,7 @@ dT_t = (T_t1/eta_initial)*(beta_tt**((gamma-1)/gamma) - 1)
 
 #Multall prints:
 print("enthalpy = ",dT_t*1005)
-print("P_t1 = ",P_t1)
+print("P_t1 = ",P_t0, P_ISA)
 print("T_t1 = ",T_t1)
 
 

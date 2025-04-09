@@ -3,6 +3,12 @@ import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 from ambiance import Atmosphere
 from scipy.optimize import fsolve
+import os
+import subprocess
+from textwrap import dedent
+import time
+from Meangen_control import run_meangen, run_stagen
+
 
 def getMeanLineRadius(rTip: float, hubToTip: float): #area average
     rHub: float =  rTip * hubToTip
@@ -120,7 +126,11 @@ def getStageEfficiencies(DeltaT: float, DeltaTis: float, c1: float, cp : float =
     ts = (cp * DeltaTis) / (cp * DeltaT + 1/2 * c1**2) #!!!!!!!!!!!!!!!!!!!!!!!!!! I am really not sure this is actually correct
     
     return tt, ts
-    
+
+
+
+
+
 if __name__ == "__main__":
     alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(0.5,0.5,0.5)
     
@@ -140,6 +150,12 @@ if __name__ == "__main__":
     )
     
     etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,0.6 * 295)
+
+
+    #Run Meangen & Stagen
+    path_of_user = "C:/Users/sambr/Documents/CODING/Turbo/Multall package/BS Multall package/Windows executables/"
+    run_meangen(path_of_user, P0[0], T0[0], 0.5, 0.5, 0.5, 10e3)
+    run_stagen(path_of_user)
     
 
     print(f"-------------------------------------------------")

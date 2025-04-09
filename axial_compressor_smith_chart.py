@@ -64,3 +64,6 @@ def get_repeated_stage_efficiency(phi, lam, r):
         eta_tt = eta_tt_min
 
     return eta_tt
+
+
+print(get_repeated_stage_efficiency(0.5, 0.2, 0.7))
