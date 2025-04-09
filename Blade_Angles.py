@@ -8,13 +8,13 @@ def calculate_incidence_deflection(Beta1,Beta2, Sigma, toc_max, foil_type): #Bet
 
     
     # Load data
-    I0_data = pd.read_csv('I0_10.csv')
-    n_data = pd.read_csv('n-coefficient.csv')
-    Ki_data = pd.read_csv('Kit-coefficient.csv')
-    Delta0_data = pd.read_csv('Delta0_10.csv')
-    Kd_data = pd.read_csv('Kdeltat-coefficient.csv')
-    m_data = pd.read_csv('m-coefficient.csv')
-    b_data = pd.read_csv('b-coefficient.csv')
+    I0_data = pd.read_csv('Blade_Angle_Data/I0_10.csv')
+    n_data = pd.read_csv('Blade_Angle_Data/n-coefficient.csv')
+    Ki_data = pd.read_csv('Blade_Angle_Data/Kit-coefficient.csv')
+    Delta0_data = pd.read_csv('Blade_Angle_Data/Delta0_10.csv')
+    Kd_data = pd.read_csv('Blade_Angle_Data/Kdeltat-coefficient.csv')
+    m_data = pd.read_csv('Blade_Angle_Data/m-coefficient.csv')
+    b_data = pd.read_csv('Blade_Angle_Data/b-coefficient.csv')
     
     I010 = interpolate_Multicurve(Beta1, Sigma, I0_data)
     n = interpolate_Multicurve(Beta1, Sigma, n_data)
