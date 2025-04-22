@@ -154,8 +154,8 @@ if __name__ == "__main__":
 
     #Run Meangen & Stagen
     path_of_user = "C:/Users/sambr/Documents/CODING/Turbo/Multall package/BS Multall package/Windows executables/"
-    run_meangen(path_of_user, P0[0], T0[0], 0.5, 0.5, 0.5, 10e3)
-    run_stagen(path_of_user)
+    #run_meangen(path_of_user, P0[0], T0[0], 0.5, 0.5, 0.5, 10e3)
+    #run_stagen(path_of_user)
     
 
     print(f"-------------------------------------------------")
