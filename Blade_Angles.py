@@ -1,5 +1,69 @@
 import numpy as np
 import pandas as pd
+from scipy.interpolate import PchipInterpolator
+
+def howell_loading_criterion(beta1, beta2, solidity):
+    """
+    Howell loading criterion for a given beta2 and solidity. This assumes that phi(RE) = 1
+    """
+    # 1) load your CSVs into these arrays in a stupid way to save a little bit of time, if it works it works
+    def parse_custom_csv(file_path):
+        column1 = []
+        column2 = []
+
+        with open(file_path, 'r') as file:
+            for line in file:
+                # Split the line into two parts using the ';' delimiter
+                part1, part2 = line.strip().split(';')
+
+                # Extract the integer and decimal parts for the first number
+                int_part1, dec_part1 = part1.split(',')
+                number1 = float(f"{int_part1}.{dec_part1}")
+                column1.append(number1)
+
+                # Extract the integer and decimal parts for the second number
+                int_part2, dec_part2 = part2.split(',')
+                number2 = float(f"{int_part2}.{dec_part2}")
+                column2.append(number2)
+
+        return np.array(column1), np.array(column2)
+
+    # Example usage
+    beta2_data, fe_data = parse_custom_csv('Blade_Angle_Data/fe_vs_beta2.csv')
+    sc_data, psi_data = parse_custom_csv('Blade_Angle_Data/psi_vs_solidity.csv')
+
+    fe_data = (fe_data / 40) * 30 + 10  # Made an error in setting the axis, this corrects it
+
+    # 2) build interpolators
+    fe_f = PchipInterpolator(beta2_data, fe_data)
+    Psi_f = PchipInterpolator(sc_data, psi_data)
+
+    # 3) Howell loading criterion
+    def delta_beta_star(beta2, solidity):
+        return fe_f(beta2) * Psi_f(1/solidity)
+
+    delta_beta = abs(beta1 - beta2)
+    satisfied = delta_beta < delta_beta_star(abs(beta2), solidity)
+    frac = delta_beta / delta_beta_star(abs(beta2), solidity)
+
+    return satisfied, frac , delta_beta_star(abs(beta2), solidity), delta_beta
+
+def diffusion_factor(beta1_deg, beta2_deg, solidity):
+    """
+    Compute the diffusion factor DF.
+    """
+    beta1 = np.radians(abs(beta1_deg))
+    beta2 = np.radians(abs(beta2_deg))
+
+    term1 = 1 - np.cos(beta1) / np.cos(beta2)
+    term2 = (np.cos(beta1) / (2*solidity)) * (np.tan(beta1) - np.tan(beta2))
+
+    DF = term1 + term2
+    satified = DF < 0.45
+    frac = DF / 0.45
+
+    return satified, frac, DF
+
 
 
 def calculate_incidence_deflection(Beta1,Beta2, Sigma, toc_max, foil_type): #Beta 1, solidity c/S, max thickness over chord ratio, type of foil (DCA/NACA-65)
@@ -119,4 +183,6 @@ def get_xy_for_label(df,label):
 
 #Run to test
 print(calculate_incidence_deflection(Beta1=50,Beta2=70, Sigma=1.01, toc_max=0.05, foil_type='DCA'))
+print(howell_loading_criterion(-52, -35, 1))
+print(diffusion_factor(-52, -35, 1))
 
