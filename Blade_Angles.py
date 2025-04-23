@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scipy.interpolate import PchipInterpolator
+import math
 
 def howell_loading_criterion(beta1, beta2, solidity):
     """
@@ -69,7 +70,8 @@ def diffusion_factor(beta1_deg, beta2_deg, solidity):
 def calculate_incidence_deflection(Beta1,Beta2, Sigma, toc_max, foil_type): #Beta 1, solidity c/S, max thickness over chord ratio, type of foil (DCA/NACA-65)
     """Calculates the incidence and deflection based on the velocity triangles and blade foil shape.
     """
-
+    Beta1 = abs(Beta1)
+    Beta2 = abs(Beta2)
     
     # Load data
     I0_data = pd.read_csv('Blade_Angle_Data/I0_10.csv')
@@ -84,7 +86,7 @@ def calculate_incidence_deflection(Beta1,Beta2, Sigma, toc_max, foil_type): #Bet
     n = interpolate_Multicurve(Beta1, Sigma, n_data)
     Ki_t = interpolate_single_curve(toc_max, Ki_data)
     Kd_t = interpolate_single_curve(toc_max, Kd_data)
-    Delta010 = interpolate_Multicurve(Beta1, Sigma, n_data)
+    Delta010 = interpolate_Multicurve(Beta1, Sigma, Delta0_data)
     m = interpolate_single_curve(Beta1, m_data)
     b = interpolate_single_curve(Beta1, b_data)
 
@@ -100,10 +102,15 @@ def calculate_incidence_deflection(Beta1,Beta2, Sigma, toc_max, foil_type): #Bet
         raise ValueError("No foil_type was provided! Function ::: calculate_incidence_deflection(Beta1, Sigma, toc_max, foil_type) where foil_type is 'DCA' or 'NACA-65' ")
     I0 = Ki_sh * Ki_t * I010
     Delta0 = Kd_sh * Kd_t * Delta010
-    theta = ( Beta2 - Beta1 + Delta0 - I0)/(1 - (m/Sigma**b)+n)
+    theta = ( abs(Beta2 - Beta1) + Delta0 - I0)/(1 - (m/Sigma**b)+n)
     I = I0 + n*theta
     Delta = Delta0 + (m/Sigma**b)*theta
-    return(I, Delta)
+
+    #Debug prints
+    # print(f"theta= {theta}, I0= {I0}, Ki_t= {Ki_t}, n = {n}, I= {I}, Delta0= {Delta0}, Delta010= {Delta010},  Kd_t= {Kd_t}, I010= {I010}, Delta010= {Delta010}, m= {m}, b= {b}")
+    # print(( abs(Beta2 - Beta1) + Delta0 - I0), (1 - (m/Sigma**b)+n))
+
+    return(-I, -Delta)
     
     
 
@@ -182,7 +189,7 @@ def get_xy_for_label(df,label):
 
 
 #Run to test
-print(calculate_incidence_deflection(Beta1=50,Beta2=70, Sigma=1.01, toc_max=0.05, foil_type='DCA'))
-print(howell_loading_criterion(-52, -35, 1))
-print(diffusion_factor(-52, -35, 1))
+print(calculate_incidence_deflection(Beta1=-52,Beta2=-35, Sigma=1.5, toc_max=0.1, foil_type='NACA-65'))
+# print(howell_loading_criterion(-52, -35, 1))
+# print(diffusion_factor(-52, -35, 1))
 

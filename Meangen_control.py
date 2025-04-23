@@ -5,7 +5,7 @@ import time
 from numpy import pi
 from pathlib import Path
 
-def run_meangen(P0_01, T0_01, PSI, PHI, R, H):
+def run_meangen(P0_01, T0_01, PSI, PHI, R, H, incidence1, deflection1):
     """Runs Meangen"""
     # %% Inputs
     path = "meangen.in"
@@ -26,8 +26,8 @@ def run_meangen(P0_01, T0_01, PSI, PHI, R, H):
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
        0.00000   0.02000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
            0.9             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
-       5.5   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
-       0.2147  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
+       {deflection1}   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
+       {incidence1}  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
        0.1985               BLADE TWIST OPTION, FRAC_TWIST (1 is free vortex, 0 is without twist)
     n                        BLADE ROTATION OPTION , Y or N
       90  90         QO ANGLES AT LE  AND TE OF ROW 1

@@ -9,6 +9,7 @@ import subprocess
 from textwrap import dedent
 import time
 from Meangen_control import run_meangen, run_stagen, run_multall
+from Blade_Angles import howell_loading_criterion, diffusion_factor, calculate_incidence_deflection
 
 
 def getMeanLineRadius(rTip: float, hubToTip: float): #area average
@@ -137,6 +138,10 @@ if __name__ == "__main__":
     phi = 0.4065019016261384
     DOR = 0.8877181750502793
     alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(psi, phi, DOR)
+
+    solidity = 1.5 #TODO Implement howell & diffusion factor to optimize for solidity
+
+    incidence, deflection = calculate_incidence_deflection(beta1, beta2, solidity, 0.1, "DCA") #TODO actually choose t/c and foil type
     
     T0, P0, rho0 = getStagnationInletProperties(10e3, 0.78)
     
@@ -157,7 +162,7 @@ if __name__ == "__main__":
 
 
     #Run Meangen & Stagen
-    run_meangen(P0[0]/100000, T0[0], psi, phi, DOR, 38.4)
+    run_meangen(P0[0]/100000, T0[0], psi, phi, DOR, 38.4, incidence, deflection)
     run_stagen()
     run_multall()
     
