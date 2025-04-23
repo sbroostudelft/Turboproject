@@ -16,7 +16,7 @@ hub_to_tip = 0.3
 RPM = 5000 #rpm
 
 "Calculation of the duty coefficients"
-# psi, phi, DOR = calculate_duty_coefficients(np.sqrt(M_w_1 ** 2 - M_ax ** 2))
+psi, phi, DOR = calculate_duty_coefficients(np.sqrt(M_w_1 ** 2 - M_ax ** 2))
 
 P_t0 = P_ISA * (1 + ((gamma-1)/2)*M_inf**2) ** ((gamma-1)/gamma)
 T_t0 = T_ISA * (1 + ((gamma-1)/2)*M_inf**2)
@@ -48,6 +48,7 @@ omega = RPM * 2 * np.pi /  60
 U_tip = R_t * omega
 M_tip = U_tip / a_1
 print(M_tip)
+print(psi, phi, DOR)
 
 
 

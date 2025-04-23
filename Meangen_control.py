@@ -5,12 +5,10 @@ import time
 from numpy import pi
 from pathlib import Path
 
-def run_meangen(path_of_user, P0_01, T0_01, PSI, PHI, R, H):
+def run_meangen(P0_01, T0_01, PSI, PHI, R, H):
     """Runs Meangen"""
     # %% Inputs
-    filename = "meangen.in"
-
-    path = path_of_user+filename
+    path = "meangen.in"
 
     template = f"""C                        TURBO_TYP,"C" FOR A COMPRESSOR,"T" FOR A TURBINE
     AXI                      FLO_TYP FOR AXIAL OR MIXED FLOW MACHINE
@@ -21,7 +19,7 @@ def run_meangen(path_of_user, P0_01, T0_01, PSI, PHI, R, H):
        5000             ROTATION SPEED, RPM
        80.00             MASS FLOW RATE, FLOWIN.
     A                        INTYPE, TO CHOOSE THE METHOD OF DEFINING THE VELOCITY TRIANGLES
-      {R}  {PHI}  {PSI}    REACTION, FLOW COEFF., LOADING COEFF.
+      {R}  {PHI}  {2*PSI}    REACTION, FLOW COEFF., LOADING COEFF.
     B                        RADTYPE, TO CHOOSE THE DESIGN POINT RADIUS
            {H}           ENTHALPY CHANGE IN KJ/KG
            0.0440   0.0806 BLADE AXIAL CHORDS IN METRES.
@@ -54,19 +52,18 @@ def run_meangen(path_of_user, P0_01, T0_01, PSI, PHI, R, H):
         input_file.write(template)
         input_file.close()
 
-    exe_path = path_of_user + "meangen-17.4.exe"
+    exe_path = "meangen-17.4.exe"
 
     subprocess.run(
         exe_path,
         input="F\n",
-        cwd=path_of_user,
         text=True,
         shell=True  # Only if you need shell features
     )
 
     time.sleep(1.5)
 
-    stagen_path = path_of_user + "stagen.dat"
+    stagen_path = "stagen.dat"
     with open(stagen_path, 'r') as file:
         lines = file.readlines()
 
@@ -82,22 +79,21 @@ def run_meangen(path_of_user, P0_01, T0_01, PSI, PHI, R, H):
     print("Meangen ran correctly (or not)")
 
 
-def run_stagen(path_of_user):
-    exe_path = path_of_user + "stagen-18.1.exe"
+def run_stagen():
+    exe_path = "stagen-18.1.exe"
 
     subprocess.run(
         exe_path,
         input='Y\n',
-        cwd=path_of_user,
         text=True,
         shell=True
     )
 
 
-def run_multall(programs_dir):
-    exe_path = programs_dir + "multall-open-20.9.exe"
-    stage_path = programs_dir + "stage_new.dat"
-    results_path = programs_dir + "results.txt"
+def run_multall():
+    exe_path = "multall-open-20.9.exe"
+    stage_path = "stage_new.dat"
+    results_path = "results.txt"
     # Call multall
     worker_number = 1
     if worker_number is None:
@@ -110,7 +106,6 @@ def run_multall(programs_dir):
         stdout=open(results_path, 'w'),
         stderr=subprocess.PIPE,
         shell=True,
-        cwd=str(programs_dir)
     )
 
     start_time = time.time()
@@ -123,9 +118,6 @@ def run_multall(programs_dir):
         else:
             print(f'Multall thread {worker_number} has been running for {elapsed_time} minutes...')
 
-path = "C:/Users/sambr/Documents/CODING/Turbo/Multall package/BS Multall package/Windows executables/"
-# run_meangen(path, 0.46, 239.2704, 0.5, 0.5, 0.5, 38.4)
-# run_stagen(path)
-exe_path = path + "stagen-18.1.exe"
-print(Path(exe_path).resolve())
-#run_multall(path)
+# run_meangen(0.39, 239.2704, 0.5, 0.5, 0.5, 38.4)
+# run_stagen()
+# run_multall()

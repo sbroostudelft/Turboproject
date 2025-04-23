@@ -8,12 +8,12 @@ import os
 import subprocess
 from textwrap import dedent
 import time
-from Meangen_control import run_meangen, run_stagen
+from Meangen_control import run_meangen, run_stagen, run_multall
 
 
 def getMeanLineRadius(rTip: float, hubToTip: float): #area average
-    rHub: float =  rTip * hubToTip
-    return np.sqrt( (rHub**2 + rTip**2)/ 2 )
+    rHub: float = rTip * hubToTip
+    return np.sqrt( (rHub**2 + rTip**2)/2)
 
 
 def computeVelocityTrianglesWithAlpha1Known(psi: float, phi: float, alpha1: float = 0) -> tuple[float, float, float, float]: 
@@ -29,10 +29,10 @@ def computeVelocityTrianglesWithAlpha1Known(psi: float, phi: float, alpha1: floa
     return alpha2, beta1, beta2, R
 
 def computeVelocityTrianglesWithRKnown(psi: float, phi: float, R: float) -> tuple[float, float, float, float]: 
-    alpha1 = np.atan(-1 * ( ((R + psi/2 - 1)/ phi)  ))
-    beta2  : float = np.atan( (psi + phi * np.tan(alpha1) - 1) / phi)
-    beta1  : float = np.atan( np.tan(alpha1) - 1 / phi)
-    alpha2 : float = np.atan( np.tan(beta2) + 1 / phi)
+    alpha1 = math.atan(-1 * ( ((R + psi/2 - 1)/ phi)  ))
+    beta2  : float = math.atan( (psi + phi * np.tan(alpha1) - 1) / phi)
+    beta1  : float = math.atan( np.tan(alpha1) - 1 / phi)
+    alpha2 : float = math.atan( np.tan(beta2) + 1 / phi)
     
     return alpha1, alpha2, beta1, beta2
 
@@ -133,9 +133,12 @@ def getStageEfficiencies(DeltaT: float, DeltaTis: float, c1: float, cp : float =
 
 
 if __name__ == "__main__":
-    alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(0.5,0.5,0.5)
+    psi = 0.22456364989944153
+    phi = 0.4065019016261384
+    DOR = 0.8877181750502793
+    alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(psi, phi, DOR)
     
-    T0, P0, rho0 = getStagnationInletProperties(10e3,0.78)
+    T0, P0, rho0 = getStagnationInletProperties(10e3, 0.78)
     
     T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, DeltaT, DeltaTis =  getPropertiesAfterStage(
         T0in = T0,
@@ -154,9 +157,9 @@ if __name__ == "__main__":
 
 
     #Run Meangen & Stagen
-    path_of_user = "C:/Users/sambr/Documents/CODING/Turbo/Multall package/BS Multall package/Windows executables/"
-    #run_meangen(path_of_user, P0[0], T0[0], 0.5, 0.5, 0.5, 10e3)
-    #run_stagen(path_of_user)
+    run_meangen(P0[0]/100000, T0[0], psi, phi, DOR, 38.4)
+    run_stagen()
+    run_multall()
     
 
     print(f"-------------------------------------------------")
