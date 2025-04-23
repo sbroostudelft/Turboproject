@@ -1,7 +1,7 @@
-"""Attempt at implementing the Lieblein model for profile losses
-    UNFINISHED
-    """
-
+"""
+Calculates the loss coefficients and the efficiency
+Considers 2D loss mechanisms: boundary layer, shock and mixing losses
+"""
 
 import numpy as np
 from meanline import computeVelocityTrianglesWithRKnown
@@ -16,7 +16,11 @@ def compute_denton_bl_losses(psi, phi, R, solidity):
     return zeta_s, zeta_r
 
 def compute_denton_shock_losses(psi, phi, R):
-    return
+    gamma = 1.4
+    M_1 = 0.6
+    delta_s_over_R = (2/3) * ((gamma)/(gamma+1)**2) * ((M_1 ** 2) -1)
+    zeta_s = delta_s_over_R * ((1)/(0.5 * gamma * M_1 ** 2))
+    return zeta_s
 
 def compute_TE_mixing_losses(t_over_s):
     return
@@ -32,6 +36,7 @@ if __name__ == "__main__":
     phi = 0.4065
     R = 0.8877
 
-    allah, allah2 = compute_denton_bl_losses(psi, phi, R, 1.5)
-    print(allah, allah2)
-    print(compute_eta(psi, phi, R, allah2, allah))
+    zeta_s, zeta_r = compute_denton_bl_losses(psi, phi, R, 1)
+    print(f"Stator loss coefficient: {zeta_s:.6f}")
+    print(f"Rotor loss coefficient: {zeta_r:.6f}")
+    print(compute_denton_shock_losses(0,0,0))
