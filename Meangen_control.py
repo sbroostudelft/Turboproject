@@ -1,6 +1,11 @@
 """Runs Meangen"""
+import subprocess
+from textwrap import dedent
+import time
+from numpy import pi
+from pathlib import Path
 
-def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, H):
+def run_meangen(path_of_user, P0_01, T0_01, PSI, PHI, R, H):
     """Runs Meangen"""
     # %% Inputs
     filename = "meangen.in"
@@ -82,14 +87,45 @@ def run_stagen(path_of_user):
 
     subprocess.run(
         exe_path,
-        input="Y\n",
+        input='Y\n',
         cwd=path_of_user,
         text=True,
         shell=True
     )
-    print("Stagen ran correctly")
 
 
+def run_multall(programs_dir):
+    exe_path = programs_dir + "multall-open-20.9.exe"
+    stage_path = programs_dir + "stage_new.dat"
+    results_path = programs_dir + "results.txt"
+    # Call multall
+    worker_number = 1
+    if worker_number is None:
+        print('Starting Multall execution.')
+    else:
+        print(f'Starting Multall thread {worker_number} execution.')
+    multall_process = subprocess.Popen(
+        [exe_path],
+        stdin=open(stage_path, 'r'),
+        stdout=open(results_path, 'w'),
+        stderr=subprocess.PIPE,
+        shell=True,
+        cwd=str(programs_dir)
+    )
 
+    start_time = time.time()
 
+    while multall_process.poll() is None:
+        elapsed_time = int((time.time() - start_time) / 60) + 1
+        time.sleep(60)
+        if worker_number is None:
+            print(f'Multall has been running for {elapsed_time} minutes...')
+        else:
+            print(f'Multall thread {worker_number} has been running for {elapsed_time} minutes...')
 
+path = "C:/Users/sambr/Documents/CODING/Turbo/Multall package/BS Multall package/Windows executables/"
+# run_meangen(path, 0.46, 239.2704, 0.5, 0.5, 0.5, 38.4)
+# run_stagen(path)
+exe_path = path + "stagen-18.1.exe"
+print(Path(exe_path).resolve())
+#run_multall(path)

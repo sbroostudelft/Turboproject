@@ -16,20 +16,21 @@ hub_to_tip = 0.3
 RPM = 5000 #rpm
 
 "Calculation of the duty coefficients"
-psi, phi, DOR = calculate_duty_coefficients(np.sqrt(M_w_1 ** 2 - M_ax ** 2))
+# psi, phi, DOR = calculate_duty_coefficients(np.sqrt(M_w_1 ** 2 - M_ax ** 2))
 
-P_t0 = P_ISA * (1 + ((gamma-1)/2)*M_inf**2) ** ((gamma-1)/gamma)
+psi = 0.2246
+phi = 0.4065
+DOR = 0.8877
+
+P_t0 = P_ISA * (1 + ((gamma-1)/2)*M_inf**2) ** (gamma/(gamma-1))
 T_t0 = T_ISA * (1 + ((gamma-1)/2)*M_inf**2)
 
-P_t1 = P_ISA * (1 + ((gamma-1)/2)*M_ax**2) ** ((gamma-1)/gamma)
-T_t1 = T_ISA * (1 + ((gamma-1)/2)*M_ax**2)
-
-dT_t = (T_t1/eta_initial)*(beta_tt**((gamma-1)/gamma) - 1)
+dT_t = (T_t0/eta_initial)*(beta_tt**((gamma-1)/gamma) - 1)
 
 #Multall prints:
 print("enthalpy = ",dT_t*1005)
-print("P_t1 = ",P_t0, P_ISA)
-print("T_t1 = ",T_t1)
+print("P_t1 = ", P_t0, P_t0, "P_ISA =", P_ISA)
+print("T_t1 = ",T_t0)
 
 
 ## Area calculations
@@ -40,8 +41,8 @@ A_fan = f/(rho_1 * a_1 * M_ax)
 print(A_fan)
 print(rho_1)
 
-R_t = np.sqrt(A_fan/(np.pi * (1 -  hub_to_tip**2)))
-print(R_t)
+R_t = np.sqrt(A_fan/(np.pi * (1 - hub_to_tip**2)))
+print("Radius:",R_t)
 
 ##tip mach number
 omega = RPM * 2 * np.pi /  60
