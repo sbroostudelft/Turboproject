@@ -1,3 +1,8 @@
+import os
+import subprocess
+from textwrap import dedent
+import time
+
 """Runs Meangen"""
 import subprocess
 from textwrap import dedent
@@ -5,10 +10,13 @@ import time
 from numpy import pi
 from pathlib import Path
 
-def run_meangen(P0_01, T0_01, PSI, PHI, R, H, incidence1, deflection1):
+def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, deflection1):
     """Runs Meangen"""
     # %% Inputs
-    path = "meangen.in"
+    filename = "meangen.in"
+    os.chdir(path_of_user)
+
+    path = os.path.join(path_of_user,filename)
 
     template = f"""C                        TURBO_TYP,"C" FOR A COMPRESSOR,"T" FOR A TURBINE
     AXI                      FLO_TYP FOR AXIAL OR MIXED FLOW MACHINE
@@ -17,14 +25,14 @@ def run_meangen(P0_01, T0_01, PSI, PHI, R, H, incidence1, deflection1):
        1                    NUMBER OF STAGES IN THE MACHINE
     M                        CHOICE OF DESIGN POINT RADIUS, HUB, MID or TIP
        5000             ROTATION SPEED, RPM
-       80.00             MASS FLOW RATE, FLOWIN.
+       {mdot}             MASS FLOW RATE, FLOWIN.
     A                        INTYPE, TO CHOOSE THE METHOD OF DEFINING THE VELOCITY TRIANGLES
       {R}  {PHI}  {PSI}    REACTION, FLOW COEFF., LOADING COEFF.
-    B                        RADTYPE, TO CHOOSE THE DESIGN POINT RADIUS
-           {H}           ENTHALPY CHANGE IN KJ/KG
+    A                        RADTYPE, TO CHOOSE THE DESIGN POINT RADIUS
+           {rMean}           ENTHALPY CHANGE IN KJ/KG
            0.0440   0.0806 BLADE AXIAL CHORDS IN METRES.
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
-       0.00000   0.02000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
+       0.00000   0.00000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
            0.9             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
        {deflection1}   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
        {incidence1}  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
@@ -52,7 +60,7 @@ def run_meangen(P0_01, T0_01, PSI, PHI, R, H, incidence1, deflection1):
         input_file.write(template)
         input_file.close()
 
-    exe_path = "meangen-17.4.exe"
+    exe_path = os.path.join(path_of_user,"meangen-17.4.exe")
 
     subprocess.run(
         exe_path,
@@ -63,7 +71,7 @@ def run_meangen(P0_01, T0_01, PSI, PHI, R, H, incidence1, deflection1):
 
     time.sleep(1.5)
 
-    stagen_path = "stagen.dat"
+    stagen_path = os.path.join(path_of_user,"stagen.dat")
     with open(stagen_path, 'r') as file:
         lines = file.readlines()
 
@@ -79,8 +87,9 @@ def run_meangen(P0_01, T0_01, PSI, PHI, R, H, incidence1, deflection1):
     print("Meangen ran correctly (or not)")
 
 
-def run_stagen():
-    exe_path = "stagen-18.1.exe"
+def run_stagen(path_of_user):
+    os.chdir(path_of_user)
+    exe_path = os.path.join(path_of_user,"stagen-18.1.exe")
 
     subprocess.run(
         exe_path,
@@ -90,10 +99,10 @@ def run_stagen():
     )
 
 
-def run_multall():
-    exe_path = "multall-open-20.9.exe"
-    stage_path = "stage_new.dat"
-    results_path = "results.txt"
+def run_multall(path_of_user):
+    exe_path     = os.path.join(path_of_user,"multall-open-20.9.exe")
+    stage_path   = os.path.join(path_of_user,"stage_new.dat")
+    results_path = os.path.join(path_of_user,"results.txt")
     # Call multall
     worker_number = 1
     if worker_number is None:
@@ -111,12 +120,14 @@ def run_multall():
     start_time = time.time()
 
     while multall_process.poll() is None:
-        elapsed_time = int((time.time() - start_time) / 60) + 1
-        time.sleep(60)
+        elapsed_time = (time.time() - start_time) / 60
+        time.sleep(1)
         if worker_number is None:
-            print(f'Multall has been running for {elapsed_time} minutes...')
+            print("\r", end="")
+            print(f"Multall has been running for {elapsed_time:5.1f} minutes...                ", end="")
         else:
-            print(f'Multall thread {worker_number} has been running for {elapsed_time} minutes...')
+            print("\r", end="")
+            print(f"Multall thread {worker_number} has been running for {elapsed_time:5.1f} minutes...                  ", end="")
 
 # run_meangen(0.39, 239.2704, 0.5, 0.5, 0.5, 38.4)
 # run_stagen()
