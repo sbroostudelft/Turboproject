@@ -144,9 +144,6 @@ def getRelativeMachNumbers(hubToTip: float, rTip: float, AxialSpeed:float, omega
     return VrelHub/a, VrelMean/a, VrelTip/a
     
 
-
-
-
 if __name__ == "__main__":
     #user input
     
@@ -157,7 +154,7 @@ if __name__ == "__main__":
     altitude = 10e3 #[m]
     Minf = 0.78 
     
-    C1mag = 0.6 * 295 # [m/s] this is not correct exactly just for reference
+    M1abs = 0.6  #[-]
     omega = 5000 #[rpm]
     
     hubToTip = 0.3
@@ -170,12 +167,14 @@ if __name__ == "__main__":
     
     rMean = getMeanLineRadius(rTip,hubToTip)
     
-    phi = C1mag / (rMean * omega * 2 * np.pi / 60)
+    T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf)
+    
+    C1mag = M1abs * np.sqrt(1.4 * 287 * Tinf)
+        
+    phi = C1mag[0] / (rMean * omega * 2 * np.pi / 60)
     
     #alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(psi,phi,DOR)
     alpha2, beta1, beta2, DOR = computeVelocityTrianglesWithAlpha1Known(psi,phi,alpha1)
-    
-    T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf)
     
     T2, P2, rho2 = getStaticProperties(C1mag,T02,P02)
     
@@ -224,7 +223,7 @@ if __name__ == "__main__":
     print(f"Tinf          [K]: {Tinf[0]:>10.2f}")
     print(f"Pinf         [Pa]: {Pinf[0]:>10.2f}")
     print(f"rhoInf    [kg/m3]: {rhoInf[0]:>10.2f}")
-    print(f"Vm          [m/s]: {C1mag:>10.2f}")
+    print(f"Vm          [m/s]: {C1mag[0]:>10.2f}")
     print(f"T02            [K]: {T02[0]:>10.2f}")
     print(f"P02           [Pa]: {P02[0]:>10.2f}")
     print(f"rho02      [kg/m3]: {rho02[0]:>10.2f}")
@@ -248,7 +247,7 @@ if __name__ == "__main__":
     print(f"P3           [Pa]: {P3[0]:>10.2f}")
     print(f"rho3      [kg/m3]: {rho3[0]:>10.2f}")
     print(f"PR Total      [-]: {PRTotal[0]:>10.2f}")
-    print(f"eta TtT       [-]: {etaTtT:>10.2f}")
-    print(f"eta TtS       [-]: {etaTtS:>10.2f}")
+    print(f"eta TtT       [-]: {etaTtT[0]:>10.2f}")
+    print(f"eta TtS       [-]: {etaTtS[0]:>10.2f}")
     print(f"-------------------------------------------------")
     #drawVelocityTriangles(alpha1,alpha2,beta1,beta2)
