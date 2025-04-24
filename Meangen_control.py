@@ -4,8 +4,13 @@ from textwrap import dedent
 import time
 
 """Runs Meangen"""
+import subprocess
+from textwrap import dedent
+import time
+from numpy import pi
+from pathlib import Path
 
-def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot):
+def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, deflection1):
     """Runs Meangen"""
     # %% Inputs
     filename = "meangen.in"
@@ -28,9 +33,9 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot):
            0.0440   0.0806 BLADE AXIAL CHORDS IN METRES.
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
        0.00000   0.00000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
-           0.9351             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
-       5.5   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
-       0.2147  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
+           0.9             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
+       {deflection1}   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
+       {incidence1}  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
        0.1985               BLADE TWIST OPTION, FRAC_TWIST (1 is free vortex, 0 is without twist)
     n                        BLADE ROTATION OPTION , Y or N
       90  90         QO ANGLES AT LE  AND TE OF ROW 1
@@ -60,7 +65,6 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot):
     subprocess.run(
         exe_path,
         input="F\n",
-        cwd=path_of_user,
         text=True,
         shell=True  # Only if you need shell features
     )
@@ -89,14 +93,42 @@ def run_stagen(path_of_user):
 
     subprocess.run(
         exe_path,
-        input="Y\n",
-        cwd=path_of_user,
+        input='Y\n',
         text=True,
         shell=True
     )
-    print("Stagen ran correctly")
 
 
+def run_multall(path_of_user):
+    exe_path     = os.path.join(path_of_user,"multall-open-20.9.exe")
+    stage_path   = os.path.join(path_of_user,"stage_new.dat")
+    results_path = os.path.join(path_of_user,"results.txt")
+    # Call multall
+    worker_number = 1
+    if worker_number is None:
+        print('Starting Multall execution.')
+    else:
+        print(f'Starting Multall thread {worker_number} execution.')
+    multall_process = subprocess.Popen(
+        [exe_path],
+        stdin=open(stage_path, 'r'),
+        stdout=open(results_path, 'w'),
+        stderr=subprocess.PIPE,
+        shell=True,
+    )
 
+    start_time = time.time()
 
+    while multall_process.poll() is None:
+        elapsed_time = (time.time() - start_time) / 60
+        time.sleep(1)
+        if worker_number is None:
+            print("\r", end="")
+            print(f"Multall has been running for {elapsed_time:5.1f} minutes...                ", end="")
+        else:
+            print("\r", end="")
+            print(f"Multall thread {worker_number} has been running for {elapsed_time:5.1f} minutes...                  ", end="")
 
+# run_meangen(0.39, 239.2704, 0.5, 0.5, 0.5, 38.4)
+# run_stagen()
+# run_multall()

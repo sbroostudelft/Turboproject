@@ -3,8 +3,13 @@ import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 from ambiance import Atmosphere
 from scipy.optimize import fsolve
-from Meangen_control import run_meangen, run_stagen
+import math
 import os
+import subprocess
+from textwrap import dedent
+import time
+from Meangen_control import run_meangen, run_stagen, run_multall
+from Blade_Angles import howell_loading_criterion, diffusion_factor, calculate_incidence_deflection
 
 
 def getMeanLineRadius(rTip: float, hubToTip: float): #area average
@@ -26,10 +31,10 @@ def computeVelocityTrianglesWithAlpha1Known(psi: float, phi: float, alpha1: floa
     return alpha2, beta1, beta2, R
 
 def computeVelocityTrianglesWithRKnown(psi: float, phi: float, R: float) -> tuple[float, float, float, float]: 
-    alpha1 = np.atan(-1 * ( ((R + psi/2 - 1)/ phi)  ))
-    beta2  : float = np.atan( (psi + phi * np.tan(alpha1) - 1) / phi)
-    beta1  : float = np.atan( np.tan(alpha1) - 1 / phi)
-    alpha2 : float = np.atan( np.tan(beta2) + 1 / phi)
+    alpha1 = math.atan(-1 * ( ((R + psi/2 - 1)/ phi)  ))
+    beta2  : float = math.atan( (psi + phi * np.tan(alpha1) - 1) / phi)
+    beta1  : float = math.atan( np.tan(alpha1) - 1 / phi)
+    alpha2 : float = math.atan( np.tan(beta2) + 1 / phi)
     
     return alpha1, alpha2, beta1, beta2
 
@@ -196,6 +201,10 @@ if __name__ == "__main__":
     )
     
     etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
+    
+    solidity = 1.5 #TODO Implement howell & diffusion factor to optimize for solidity
+
+    incidence, deflection = calculate_incidence_deflection(beta1, beta2, solidity, 0.1, "DCA") #TODO actually choose t/c and foil type
 
 
     #Run Meangen & Stagen
@@ -207,8 +216,9 @@ if __name__ == "__main__":
     else:
         path_of_user = os.path.join(dirPath,"multallExecutables","Windows",)
     
-    run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, rMean,float(mdot))
+    run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, rMean,float(mdot),incidence,deflection)
     run_stagen(path_of_user)
+    run_multall(path_of_user)
     
 
     print(f"-------------------------------------------------")

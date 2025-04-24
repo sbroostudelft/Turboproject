@@ -48,6 +48,7 @@ omega = RPM * 2 * np.pi /  60
 U_tip = R_t * omega
 M_tip = U_tip / a_1
 print(M_tip)
+print(psi, phi, DOR)
 
 
 
