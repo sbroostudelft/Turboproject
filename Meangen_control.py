@@ -10,7 +10,7 @@ import time
 from numpy import pi
 from pathlib import Path
 
-def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, deflection1):
+def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, deflection1, CxRotor, CxStator):
     """Runs Meangen"""
     # %% Inputs
     filename = "meangen.in"
@@ -30,10 +30,10 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, 
       {R}  {PHI}  {PSI}    REACTION, FLOW COEFF., LOADING COEFF.
     A                        RADTYPE, TO CHOOSE THE DESIGN POINT RADIUS
            {rMean}           ENTHALPY CHANGE IN KJ/KG
-           0.0440   0.0806 BLADE AXIAL CHORDS IN METRES.
+           {CxRotor}   {CxStator} BLADE AXIAL CHORDS IN METRES.
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
        0.00000   0.00000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
-           0.9             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
+           1.0             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
        {deflection1}   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
        {incidence1}  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
        0.1985               BLADE TWIST OPTION, FRAC_TWIST (1 is free vortex, 0 is without twist)
