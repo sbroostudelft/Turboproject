@@ -84,6 +84,15 @@ def shock_loss_model(beta_b_deg, M_1, i_deg, S_1, R, kappa=1.4):
         'relative_flow_angle_deg': np.degrees(beta_s)
     }
 
+def compute_denton_shock_losses(psi, phi, R):
+    '''
+    CURRENTLY NOT IMPLEMENTED!
+    '''
+    gamma = 1.4
+    M_1 = 0.6
+    delta_s_over_R = (2/3) * ((gamma)/(gamma+1)**2) * ((M_1 ** 2) -1)
+    zeta_s = delta_s_over_R * ((1)/(0.5 * gamma * M_1 ** 2))
+    return zeta_s
 
 # Example usage
 if __name__ == "__main__":
