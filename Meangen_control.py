@@ -36,7 +36,7 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, 
            {etaIso}             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
        {deflection1}   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
        {incidence1}  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
-       0.1985               BLADE TWIST OPTION, FRAC_TWIST (1 is free vortex, 0 is without twist)
+       1              BLADE TWIST OPTION, FRAC_TWIST (1 is free vortex, 0 is without twist)
     n                        BLADE ROTATION OPTION , Y or N
       90  90         QO ANGLES AT LE  AND TE OF ROW 1
       90  90         QO ANGLES AT LE  AND TE OF ROW 2

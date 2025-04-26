@@ -78,35 +78,87 @@ def getStaticProperties(C: float, T0: float, P0: float, k : float = 1.4, R : flo
     rho = P / R / T
     
     return T,P,rho
-    
-def getPropertiesAfterStage(T0in: float, P0in: float, C1mag: float, omega: float, rMean: float, alpha1: float, alpha2: float, reaction: float ,cp: float = 1006, k: float = 1.4, etaIso: float = 1, R: float = 287.05) -> tuple[float,float,float,float]:
-    U = omega * rMean #assuming constant radius
-    Ca = C1mag * np.cos(alpha1)
-    
-    C2mag = Ca / np.cos(alpha2)
-    
-    DeltaTis = U * Ca / cp * (np.tan(alpha2) - np.tan(alpha1)) 
-    DeltaT = DeltaTis / etaIso
-    
-    T03is = T0in + DeltaTis
-    T03   = T0in + DeltaT
-    
-    T0RotorIs = T0in + DeltaTis * reaction
-    T0Rotor   = T0in + DeltaT * reaction
-    
-    P03 = (T03is/T0in) ** (k / (k-1)) * P0in
-    rho03 = P03 / (R * T03)
-    
-    
-    P0Rotor = (T0RotorIs/T0in) ** (k / (k-1)) * P0in
-    rho0Rotor = P0Rotor / (R * T0Rotor)
-    
-    
-    T3, P3, rho3 = getStaticProperties(C1mag,T03,P03)
-    Trotor, Protor, rhoRotor = getStaticProperties(C2mag,T0Rotor,P0Rotor)
-    
-    return T03, P03, rho03, P03/P0in , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, P0Rotor/P0in, Trotor, Protor, rhoRotor, DeltaT, DeltaTis
 
+    
+def getPropertiesAfterRow(h0: float, deltaH0: float ,
+                            S : float, eta: float, p0Inlet: float, h0Inlet: float,
+                            v: float, Sinlet: float,
+                            cp: float = 1006,
+                            k: float = 1.4, 
+                            R: float = 287.05):
+    print("------------------------------------------")
+    
+    h0out = h0 + deltaH0
+    hOut  = h0out - 0.5 *  v**2
+    
+    print(v,h0out,hOut)
+    
+    T0out = (h0 + deltaH0) / cp
+    Tout  = hOut/cp
+    
+    Sout  = S + (1-eta) * deltaH0 / T0out
+    
+    pOut  = p0Inlet * (hOut/h0Inlet)**(k/(k-1)) * np.exp((Sinlet-Sout)/R)
+    p0Out = pOut * (h0out/hOut)**(k/(k-1))
+    
+    rhoOut = pOut / R / Tout
+    rho0Out = p0Out / R / T0out
+    
+    
+    return h0out, hOut, T0out, Tout, Sout, p0Out, pOut, rho0Out, rhoOut
+    
+
+def getStagePropertiesAfterStage(omega: float, rMean: float, Caxial: float,
+                       alpha1: float, alpha2:float,
+                       psi: float, DOR: float, eta: float,
+                       T0inlet: float, p0Inlet: float,
+                            cp: float = 1006,
+                            k: float = 1.4, 
+                            R: float = 287.05):
+    h0 = T0inlet * cp
+    h0Inlet = h0
+
+
+    U = omega * rMean
+
+    deltaH0Total  = psi * U**2
+    deltaH0Rotor  = deltaH0Total * DOR
+    deltaH0Stator = deltaH0Total * (1-DOR)
+    
+
+    h0Rotor, hRotor, T0rotor, Trotor, Srotor, p0Rotor, pRotor, rho0Rotor, rhoRotor = getPropertiesAfterRow(
+        h0 = h0,
+        deltaH0 = deltaH0Rotor,
+        S = 0,
+        eta = eta,
+        p0Inlet = p0Inlet,
+        h0Inlet=h0Inlet,
+        v = abs(Caxial/np.cos(alpha1)),
+        Sinlet=0
+        
+    )
+    
+    h03, h3, T03, T3, S3, p03, p3, rho03, rho3 = getPropertiesAfterRow(
+        h0 = h0Rotor,
+        deltaH0 = deltaH0Stator,
+        S = Srotor,
+        eta = eta,
+        p0Inlet = p0Inlet,
+        h0Inlet=h0Inlet,
+        v = abs(Caxial/np.cos(alpha2)),
+        Sinlet=0
+        
+    )
+    
+    deltaH0Isen = deltaH0Total/eta
+    
+    w = deltaH0Isen/eta
+    etaTT = deltaH0Isen/w
+    etaTS = (deltaH0Isen - 1/2 * Caxial**2) / w
+    
+
+
+    return T03, p03, rho03, p03/p0Inlet, T3, p3, rho3, T0rotor , p0Rotor, rho0Rotor, p0Rotor/p0Inlet, Trotor, pRotor, rhoRotor, etaTT, etaTS
 
 def getStagnationInletProperties(h: float, M: float, k: float = 1.4, R: float = 287.05) -> tuple[float, float, float]:
     atmoConditions = Atmosphere(h)
@@ -180,161 +232,6 @@ def getBladeNumberAndAxialCord(Rmean: float, pitchOverCord: float, rTip: float, 
     # X = fsolve(system,[10e-2,20])
     # Z = round(X[1])
     # Z = (X[1])
-    Z = 22
+    Z = 70
     Cx = (2 * np.pi * Rmean / Z ) / pitchOverCord 
     return Z, Cx
-
-if __name__ == "__main__":
-    #user input
-    
-    alpha1 = 0
-    psi = 0.395
-    # phi = 0.563
-    
-    altitude = 10e3 #[m]
-    Minf = 0.78 
-    
-    M1abs = 0.6  #[-]
-    omega = 5000 #[rpm]
-    
-    hubToTip = 0.3
-    #rTip = 0.581 #[m]
-    mdot = 80 #[kg/s]
-    
-    etaIso = 1
-    
-    
-    # ---------------------------
-    
-    
-    
-    T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf)
-    C1mag = M1abs * np.sqrt(1.4 * 287 * Tinf)
-    T2, P2, rho2 = getStaticProperties(C1mag,T02,P02)
-    #mdot = getMassFlow(hubToTip,rTip,rho2,C1mag)
-    rTip = getTipRadiusFromMassFlow(mdot,hubToTip,C1mag,rho2)
-    rMean = getMeanLineRadius(rTip,hubToTip)
-    
-    
-    Umean = rMean * omega * 2 * np.pi / 60    
-    phi = C1mag[0] / (rMean * omega * 2 * np.pi / 60)
-    
-    #alpha1, alpha2, beta1, beta2 = computeVelocityTrianglesWithRKnown(psi,phi,DOR)
-    alpha2, beta1, beta2, DOR = computeVelocityTrianglesWithAlpha1Known(psi,phi,alpha1)
-    
-    
-    
-    MrelHub, MrelMean, MrelTip = getRelativeMachNumbers(hubToTip,rTip,C1mag,omega,np.sqrt(1.4 * 287 * T2)) 
-    
-    
-    T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, DeltaT, DeltaTis =  getPropertiesAfterStage(
-        T0in = T02,
-        P0in = P02,
-        C1mag = C1mag,
-        omega = omega * 2 * np.pi / 60,
-        rMean = rMean,
-        alpha1 = alpha1,
-        alpha2 = alpha2,
-        reaction= DOR,
-        cp = 1006,
-        etaIso = etaIso
-    )
-    
-   
-    P02rel = getRelativeTotalPressureOfRotor(T02,C1mag,np.sqrt(C1mag**2 + Umean**2),P2)
-    
-    PitchOverCordRotor = getPitchOverCord(
-        Vm = C1mag[0],
-        rho = 0.5 * (rho2 + rhoRotor) ,
-        p0 = P02rel,
-        p  = P2,
-        angleIn=beta1,
-        angleOut=beta2
-    )
-    
-    PitchOverCordStator = getPitchOverCord(
-        Vm = C1mag[0],
-        rho = 0.5 * (rho3 + rhoRotor) ,
-        p0 = P0Rotor,
-        p  = Protor,
-        angleIn=alpha2,
-        angleOut=alpha1
-    )
-    
-    Zrotor, CxRotor = getBladeNumberAndAxialCord(rMean,PitchOverCordRotor,rTip,T2,psi,phi)
-    Zstator, CxStator = getBladeNumberAndAxialCord(rMean,PitchOverCordStator,rTip, Trotor,psi,phi)
-    
-    etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
-    
-    solidity = 1.5 #TODO Implement howell & diffusion factor to optimize for solidity
-
-    incidence, deflection = calculate_incidence_deflection(beta1, beta2, solidity, 0.1, "DCA") #TODO actually choose t/c and foil type
-
-    
-
-    #Run Meangen & Stagen
-    dirPath = os.path.dirname(os.path.realpath(__file__))
-
-    
-    if os.name == "posix":
-        path_of_user = os.path.join(dirPath,"multallExecutables","Linux",)
-    else:
-        path_of_user = os.path.join(dirPath,"multallExecutables","Windows",)
-    
-    run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, rMean,float(mdot),incidence,deflection,float(CxRotor),float(CxStator))
-    # run_stagen(path_of_user)
-    #run_multall(path_of_user)
-    
-
-    print(f"-------------------------------------------------")
-    print(f"rHub          [m]: {rTip*hubToTip:>10.2f}")
-    print(f"rMean         [m]: {rMean:>10.2f}")
-    print(f"rTip          [m]: {rTip:>10.2f}")
-    print(f"mdot       [kg/s]: {mdot:>10.2f}")
-    print(f"phi           [-]: {phi:>10.2f}")
-    print(f"psi           [-]: {psi:>10.2f}")
-    print(f"DOR           [-]: {DOR:>10.2f}")
-    print(f"alpha1      [deg]: {np.degrees(alpha1):>10.2f}")
-    print(f"beta1       [deg]: {np.degrees(beta1):>10.2f}")
-    print(f"alpha2      [deg]: {np.degrees(alpha2):>10.2f}")
-    print(f"beta2       [deg]: {np.degrees(beta2):>10.2f}")
-    print(f"Tinf          [K]: {Tinf[0]:>10.2f}")
-    print(f"Pinf         [Pa]: {Pinf[0]:>10.2f}")
-    print(f"rhoInf    [kg/m3]: {rhoInf[0]:>10.2f}")
-    print(f"Vm          [m/s]: {C1mag[0]:>10.2f}")
-    print(f"T02            [K]: {T02[0]:>10.2f}")
-    print(f"P02           [Pa]: {P02[0]:>10.2f}")
-    print(f"P02rel        [Pa]: {P02rel[0]:>10.2f}")
-    print(f"rho02      [kg/m3]: {rho02[0]:>10.2f}")
-    print(f"T2            [K]: {T2[0]:>10.2f}")
-    print(f"P2           [Pa]: {P2[0]:>10.2f}")
-    print(f"MrelHub       [-]: {MrelHub[0]:>10.2f}")
-    print(f"MrelMean      [-]: {MrelMean[0]:>10.2f}")
-    print(f"MrelTip       [-]: {MrelTip[0]:>10.2f}")
-    print(f"rho2      [kg/m3]: {rho2[0]:>10.2f}")
-    print(f"T0Rotor       [K]: {T0Rotor[0]:>10.2f}")
-    print(f"P0Rotor      [Pa]: {P0Rotor[0]:>10.2f}")
-    print(f"rho0Rotor [kg/m3]: {rho0Rotor[0]:>10.2f}")
-    print(f"TRotor        [K]: {Trotor[0]:>10.2f}")
-    print(f"PRotor       [Pa]: {Protor[0]:>10.2f}")
-    print(f"rhoRotor  [kg/m3]: {rhoRotor[0]:>10.2f}")
-    print(f"PR Rotor      [-]: {PRRotor[0]:>10.2f}")
-    print(f"T03           [K]: {T03[0]:>10.2f}")
-    print(f"P03          [Pa]: {P03[0]:>10.2f}")
-    print(f"rho03     [kg/m3]: {rho03[0]:>10.2f}")
-    print(f"T3            [K]: {T3[0]:>10.2f}")
-    print(f"P3           [Pa]: {P3[0]:>10.2f}")
-    print(f"rho3      [kg/m3]: {rho3[0]:>10.2f}")
-    print(f"PR Total      [-]: {PRTotal[0]:>10.2f}")
-    print(f"eta TtT       [-]: {etaTtT[0]:>10.2f}")
-    print(f"eta TtS       [-]: {etaTtS[0]:>10.2f}")
-    print(f"1/sigma Rotor [-]: {PitchOverCordRotor[0]:>10.2f}")
-    print(f"1/sigma Stat. [-]: {PitchOverCordStator[0]:>10.2f}")
-    print(f"sigma Rotor   [-]: { PitchOverCordRotor[0]**-1:>10.2f}")
-    print(f"sigma Stat.   [-]: {PitchOverCordStator[0]**-1:>10.2f}")
-    print(f"Z Rotor       [-]: {Zrotor:>10.2f}")
-    print(f"Z Stator      [-]: {Zstator:>10.2f}")
-    print(f"Cx Rotor      [m]: { CxRotor[0]:>10.2f}")
-    print(f"Cx Stator     [m]: {CxStator[0]:>10.2f}")
-    print(f"-------------------------------------------------")
-    #drawVelocityTriangles(alpha1,alpha2,beta1,beta2)

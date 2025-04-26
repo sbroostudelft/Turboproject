@@ -17,7 +17,7 @@ mdot = 80 #[kg/s]
 thickToCord = 0.1
 
 
-bttTarget = 1.6
+bttTarget = 1.4
 
 #---------------------------------------------------------------------------------------------------------------------------
 
@@ -35,18 +35,18 @@ def getDeterminePsi(psi):
     alpha2, beta1, beta2, DOR = computeVelocityTrianglesWithAlpha1Known(psi,phi,alpha1)
     
     etaIso = compute_eta(psi,phi,DOR,thickToCord)
-        
-    T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, DeltaT, DeltaTis =  getPropertiesAfterStage(
-        T0in = T02,
-        P0in = P02,
-        C1mag = C1mag,
+    # etaIso = 1
+    T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, DeltaT, DeltaTis =  getStagePropertiesAfterStage(
         omega = omega * 2 * np.pi / 60,
-        rMean = rMean,
-        alpha1 = alpha1,
-        alpha2 = alpha2,
-        reaction= DOR,
-        cp = 1006,
-        etaIso = etaIso
+        rMean=rMean,
+        Caxial=C1mag[0],
+        alpha1=alpha1,
+        alpha2=alpha2,
+        psi=psi,
+        DOR=DOR,
+        eta = etaIso,
+        T0inlet=T02,
+        p0Inlet=P02,
     )
     
     return PRTotal - bttTarget
@@ -80,19 +80,19 @@ alpha2, beta1, beta2, DOR = computeVelocityTrianglesWithAlpha1Known(psi,phi,alph
 MrelHub, MrelMean, MrelTip = getRelativeMachNumbers(hubToTip,rTip,C1mag,omega,np.sqrt(1.4 * 287 * T2)) 
 
 etaIso = compute_eta(psi,phi,DOR,thickToCord)
-etaIso = 1
+# etaIso = 1
 
-T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, DeltaT, DeltaTis =  getPropertiesAfterStage(
-    T0in = T02,
-    P0in = P02,
-    C1mag = C1mag,
+T03, P03, rho03, PRTotal , T3, P3, rho3, T0Rotor , P0Rotor, rho0Rotor, PRRotor, Trotor, Protor, rhoRotor, etaTtT, etaTtS =  getStagePropertiesAfterStage(
     omega = omega * 2 * np.pi / 60,
-    rMean = rMean,
-    alpha1 = alpha1,
-    alpha2 = alpha2,
-    reaction= DOR,
-    cp = 1006,
-    etaIso = etaIso
+    rMean=rMean,
+    Caxial=C1mag[0],
+    alpha1=alpha1,
+    alpha2=alpha2,
+    psi=psi,
+    DOR=DOR,
+    eta = etaIso,
+    T0inlet=T02,
+    p0Inlet=P02,
 )
 
 
@@ -119,7 +119,7 @@ PitchOverCordStator = getPitchOverCord(
 Zrotor, CxRotor = getBladeNumberAndAxialCord(rMean,PitchOverCordRotor,rTip,T2,psi,phi)
 Zstator, CxStator = getBladeNumberAndAxialCord(rMean,PitchOverCordStator,rTip, Trotor,psi,phi)
 
-etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
+# etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
 
 solidity = 1.5 #TODO Implement howell & diffusion factor to optimize for solidity
 
@@ -154,10 +154,10 @@ print(f"Tinf          [K]: {Tinf[0]:>10.2f}")
 print(f"Pinf         [Pa]: {Pinf[0]:>10.2f}")
 print(f"rhoInf    [kg/m3]: {rhoInf[0]:>10.2f}")
 print(f"Vm          [m/s]: {C1mag[0]:>10.2f}")
-print(f"T02            [K]: {T02[0]:>10.2f}")
-print(f"P02           [Pa]: {P02[0]:>10.2f}")
-print(f"P02rel        [Pa]: {P02rel[0]:>10.2f}")
-print(f"rho02      [kg/m3]: {rho02[0]:>10.2f}")
+print(f"T02           [K]: {T02[0]:>10.2f}")
+print(f"P02          [Pa]: {P02[0]:>10.2f}")
+print(f"P02rel       [Pa]: {P02rel[0]:>10.2f}")
+print(f"rho02     [kg/m3]: {rho02[0]:>10.2f}")
 print(f"T2            [K]: {T2[0]:>10.2f}")
 print(f"P2           [Pa]: {P2[0]:>10.2f}")
 print(f"MrelHub       [-]: {MrelHub[0]:>10.2f}")
@@ -178,8 +178,9 @@ print(f"T3            [K]: {T3[0]:>10.2f}")
 print(f"P3           [Pa]: {P3[0]:>10.2f}")
 print(f"rho3      [kg/m3]: {rho3[0]:>10.2f}")
 print(f"PR Total      [-]: {PRTotal[0]:>10.2f}")
-print(f"eta TtT       [-]: {etaTtT[0]:>10.2f}")
-print(f"eta TtS       [-]: {etaTtS[0]:>10.2f}")
+print(f"etaIso        [-]: {etaIso:>10.2f}")
+print(f"eta TtT       [-]: {etaTtT:>10.2f}")
+print(f"eta TtS       [-]: {etaTtS:>10.2f}")
 print(f"1/sigma Rotor [-]: {PitchOverCordRotor[0]:>10.2f}")
 print(f"1/sigma Stat. [-]: {PitchOverCordStator[0]:>10.2f}")
 print(f"sigma Rotor   [-]: { PitchOverCordRotor[0]**-1:>10.2f}")
