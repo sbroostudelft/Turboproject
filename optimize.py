@@ -2,6 +2,13 @@ from meanline import *
 from loss_models import *
 from scipy.optimize import fsolve
 
+
+#-------------------------------------------------------------
+Zrotor = 20
+Zstator = 20
+bttTarget = 1.4
+#-------------------------------------------------------------
+
 alpha1 = 0
 # phi = 0.563
 
@@ -17,7 +24,6 @@ mdot = 80 #[kg/s]
 thickToCord = 0.1
 
 
-bttTarget = 1.4
 
 #---------------------------------------------------------------------------------------------------------------------------
 
@@ -116,8 +122,8 @@ PitchOverCordStator = getPitchOverCord(
     angleOut=alpha1
 )
 
-Zrotor, CxRotor = getBladeNumberAndAxialCord(rMean,PitchOverCordRotor,rTip,T2,psi,phi)
-Zstator, CxStator = getBladeNumberAndAxialCord(rMean,PitchOverCordStator,rTip, Trotor,psi,phi)
+Zrotor, CxRotor = getBladeNumberAndAxialCord(Zrotor,rMean,PitchOverCordRotor,rTip,T2,psi,phi)
+Zstator, CxStator = getBladeNumberAndAxialCord(Zstator,rMean,PitchOverCordStator,rTip, Trotor,psi,phi)
 
 # etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
 

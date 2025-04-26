@@ -82,21 +82,18 @@ def getStaticProperties(C: float, T0: float, P0: float, k : float = 1.4, R : flo
     
 def getPropertiesAfterRow(h0: float, deltaH0: float ,
                             S : float, eta: float, p0Inlet: float, h0Inlet: float,
-                            v: float, Sinlet: float,
+                            v: float, Sinlet: float, entropyFraction: float,
                             cp: float = 1006,
                             k: float = 1.4, 
                             R: float = 287.05):
-    print("------------------------------------------")
     
     h0out = h0 + deltaH0
     hOut  = h0out - 0.5 *  v**2
     
-    print(v,h0out,hOut)
-    
     T0out = (h0 + deltaH0) / cp
     Tout  = hOut/cp
     
-    Sout  = S + (1-eta) * deltaH0 / T0out
+    Sout  = S + (1-eta) * deltaH0 / T0out * entropyFraction
     
     pOut  = p0Inlet * (hOut/h0Inlet)**(k/(k-1)) * np.exp((Sinlet-Sout)/R)
     p0Out = pOut * (h0out/hOut)**(k/(k-1))
@@ -124,29 +121,30 @@ def getStagePropertiesAfterStage(omega: float, rMean: float, Caxial: float,
     deltaH0Total  = psi * U**2
     deltaH0Rotor  = deltaH0Total * DOR
     deltaH0Stator = deltaH0Total * (1-DOR)
-    
 
     h0Rotor, hRotor, T0rotor, Trotor, Srotor, p0Rotor, pRotor, rho0Rotor, rhoRotor = getPropertiesAfterRow(
         h0 = h0,
-        deltaH0 = deltaH0Rotor,
+        deltaH0 = deltaH0Total,
+        S = 0,
+        eta = eta,
+        p0Inlet = p0Inlet,
+        h0Inlet=h0Inlet,
+        v = abs(Caxial/np.cos(alpha2)),
+        Sinlet=0,
+        entropyFraction=0.5
+        
+    )
+    
+    h03, h3, T03, T3, S3, p03, p3, rho03, rho3 = getPropertiesAfterRow(
+        h0 = h0,
+        deltaH0 = deltaH0Total,
         S = 0,
         eta = eta,
         p0Inlet = p0Inlet,
         h0Inlet=h0Inlet,
         v = abs(Caxial/np.cos(alpha1)),
-        Sinlet=0
-        
-    )
-    
-    h03, h3, T03, T3, S3, p03, p3, rho03, rho3 = getPropertiesAfterRow(
-        h0 = h0Rotor,
-        deltaH0 = deltaH0Stator,
-        S = Srotor,
-        eta = eta,
-        p0Inlet = p0Inlet,
-        h0Inlet=h0Inlet,
-        v = abs(Caxial/np.cos(alpha2)),
-        Sinlet=0
+        Sinlet=0,
+        entropyFraction=1
         
     )
     
@@ -216,7 +214,7 @@ def getRelativeTotalPressureOfRotor(T0:float,Vabs:float,Vrel:float,p:float,k:flo
     h0rel = hstatic + 1/2 * Vrel**2
     return p * (h0rel/hstatic)**(k/(k-1))
 
-def getBladeNumberAndAxialCord(Rmean: float, pitchOverCord: float, rTip: float, Tstatic: float, psi: float, phi: float, k: float = 1.4, R: float = 287.05 ):
+def getBladeNumberAndAxialCord(Z: float, Rmean: float, pitchOverCord: float, rTip: float, Tstatic: float, psi: float, phi: float, k: float = 1.4, R: float = 287.05 ):
     # Mtip = (rTip * omega * 2 * np.pi / 60) / np.sqrt(k * R * Tstatic)
 
     # def system(X):
@@ -232,6 +230,5 @@ def getBladeNumberAndAxialCord(Rmean: float, pitchOverCord: float, rTip: float, 
     # X = fsolve(system,[10e-2,20])
     # Z = round(X[1])
     # Z = (X[1])
-    Z = 70
     Cx = (2 * np.pi * Rmean / Z ) / pitchOverCord 
     return Z, Cx
