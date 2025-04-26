@@ -6,7 +6,10 @@ from scipy.optimize import fsolve
 #-------------------------------------------------------------
 Zrotor = 20
 Zstator = 20
-bttTarget = 1.4
+
+blockage = 0.08
+
+bttTarget = 1.5
 #-------------------------------------------------------------
 
 alpha1 = 0
@@ -19,7 +22,6 @@ M1abs = 0.6  #[-]
 omega = 5000 #[rpm]
 
 hubToTip = 0.3
-#rTip = 0.581 #[m]
 mdot = 80 #[kg/s]
 thickToCord = 0.1
 
@@ -32,7 +34,7 @@ def getDeterminePsi(psi):
     T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf)
     C1mag = M1abs * np.sqrt(1.4 * 287 * Tinf)
     T2, P2, rho2 = getStaticProperties(C1mag,T02,P02)
-    rTip = getTipRadiusFromMassFlow(mdot,hubToTip,C1mag,rho2)
+    rTip = getTipRadiusFromMassFlow(mdot,hubToTip,C1mag,rho2,blockage)
     rMean = getMeanLineRadius(rTip,hubToTip)
     
     phi = C1mag[0] / (rMean * omega * 2 * np.pi / 60)
@@ -71,7 +73,7 @@ T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf
 C1mag = M1abs * np.sqrt(1.4 * 287 * Tinf)
 T2, P2, rho2 = getStaticProperties(C1mag,T02,P02)
 #mdot = getMassFlow(hubToTip,rTip,rho2,C1mag)
-rTip = getTipRadiusFromMassFlow(mdot,hubToTip,C1mag,rho2)
+rTip = getTipRadiusFromMassFlow(mdot,hubToTip,C1mag,rho2,blockage)
 rMean = getMeanLineRadius(rTip,hubToTip)
 
 
@@ -127,10 +129,13 @@ Zstator, CxStator = getBladeNumberAndAxialCord(Zstator,rMean,PitchOverCordStator
 
 # etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
 
-solidity = 1.5 #TODO Implement howell & diffusion factor to optimize for solidity
+solidityRotor  = float(1/PitchOverCordRotor ) #TODO Implement howell & diffusion factor to optimize for solidity
+solidityStator = float(1/PitchOverCordStator) #TODO Implement howell & diffusion factor to optimize for solidity
 
-incidence, deflection = calculate_incidence_deflection(beta1, beta2, solidity, thickToCord, "DCA") #TODO actually choose t/c and foil type
+incidenceRotor, deflectionRotor = calculate_incidence_deflection(beta1, beta2, solidityRotor, thickToCord, "DCA") #TODO actually choose t/c and foil type
+incidenceStator, deflectionStator = calculate_incidence_deflection(alpha2, alpha1, solidityStator, thickToCord, "DCA") #TODO actually choose t/c and foil type
 
+# print(incidenceRotor,deflectionRotor)
 
 
 #Run Meangen & Stagen
@@ -198,7 +203,7 @@ print(f"Cx Stator     [m]: {CxStator[0]:>10.2f}")
 print(f"-------------------------------------------------")
 
 input("Give any input to continue with meangen execution")
-run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, rMean,float(mdot),incidence,deflection,float(CxRotor),float(CxStator),float(etaIso))
+run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, rMean,float(mdot),incidenceRotor,deflectionRotor,incidenceStator,deflectionStator,float(CxRotor),float(CxStator),float(etaIso),blockage)
 input("Give any input to continue with multall execution")
 run_stagen(path_of_user)
 run_multall(path_of_user)

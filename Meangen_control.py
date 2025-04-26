@@ -10,7 +10,7 @@ import time
 from numpy import pi
 from pathlib import Path
 
-def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, deflection1, CxRotor, CxStator, etaIso):
+def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, deflection1,incidence2, deflection2, CxRotor, CxStator, etaIso,blockage):
     """Runs Meangen"""
     # %% Inputs
     filename = "meangen.in"
@@ -32,10 +32,10 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, 
            {rMean}           ENTHALPY CHANGE IN KJ/KG
            {CxRotor}   {CxStator} BLADE AXIAL CHORDS IN METRES.
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
-       0.00000   0.00000     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
+       {blockage}   {blockage}     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
            {etaIso}             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
-       {deflection1}   8         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
-       {incidence1}  0.2142         FIRST AND SECOND ROW INCIDENCE ANGLES
+       {deflection1}  {deflection2}         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
+       {incidence1}  {incidence2}         FIRST AND SECOND ROW INCIDENCE ANGLES
        1              BLADE TWIST OPTION, FRAC_TWIST (1 is free vortex, 0 is without twist)
     n                        BLADE ROTATION OPTION , Y or N
       90  90         QO ANGLES AT LE  AND TE OF ROW 1

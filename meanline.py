@@ -198,8 +198,9 @@ def getRelativeMachNumbers(hubToTip: float, rTip: float, AxialSpeed:float, omega
     
     return VrelHub/a, VrelMean/a, VrelTip/a
 
-def getTipRadiusFromMassFlow(mdot: float, hubToTip: float, AxialSpeed: float, rho: float) -> float:
-    return float(np.sqrt(mdot / (np.pi  * ( 1 - hubToTip**2) * AxialSpeed * rho)))
+def getTipRadiusFromMassFlow(mdot: float, hubToTip: float, AxialSpeed: float, rho: float, blockage=1) -> float:
+    A = mdot / AxialSpeed / rho / (1-blockage)
+    return float(np.sqrt(A / (np.pi  * ( 1 - hubToTip**2))))
 
 def getPitchOverCord(Vm: float, rho: float, p0: float, p: float, angleIn: float, angleOut: float, Zw: float = 0.5) -> float:
     Vt1 = np.tan(angleIn)  * Vm
