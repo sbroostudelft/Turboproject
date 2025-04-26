@@ -4,12 +4,12 @@ from scipy.optimize import fsolve
 
 
 #-------------------------------------------------------------
-Zrotor = 24
-Zstator = 18
+Zrotor = 35
+Zstator = 28
 
 blockage = 0.06
 
-bttTarget = 1.5
+bttTarget = 1.41
 #-------------------------------------------------------------
 
 alpha1 = 0
@@ -17,13 +17,13 @@ alpha1 = 0
 
 altitude = 10e3 #[m]
 Minf = 0.78 
-
 M1abs = 0.6  #[-]
 omega = 5000 #[rpm]
 
 hubToTip = 0.3
 mdot = 80 #[kg/s]
 thickToCord = 0.1
+twist = 1
 
 
 
@@ -206,7 +206,7 @@ print(f"Cx Stator     [m]: {CxStator[0]:>10.2f}")
 print(f"-------------------------------------------------")
 
 input("Give any input to continue with meangen execution")
-run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, rMean,float(mdot),incidenceRotor,deflectionRotor,incidenceStator,deflectionStator,float(CxRotor),float(CxStator),float(etaIso),blockage)
+run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, rMean,float(mdot),incidenceRotor,deflectionRotor,incidenceStator,deflectionStator,float(CxRotor),float(CxStator),float(etaIso),blockage, twist)
 input("Give any input to continue with multall execution")
 run_stagen(path_of_user)
 run_multall(path_of_user)
