@@ -4,10 +4,10 @@ from scipy.optimize import fsolve
 
 
 #-------------------------------------------------------------
-Zrotor = 20
-Zstator = 20
+Zrotor = 24
+Zstator = 18
 
-blockage = 0.08
+blockage = 0.06
 
 bttTarget = 1.5
 #-------------------------------------------------------------
@@ -130,10 +130,13 @@ Zstator, CxStator = getBladeNumberAndAxialCord(Zstator,rMean,PitchOverCordStator
 # etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
 
 solidityRotor  = float(1/PitchOverCordRotor ) #TODO Implement howell & diffusion factor to optimize for solidity
+print("Solidity:::",solidityRotor)
 solidityStator = float(1/PitchOverCordStator) #TODO Implement howell & diffusion factor to optimize for solidity
 
-incidenceRotor, deflectionRotor = calculate_incidence_deflection(beta1, beta2, solidityRotor, thickToCord, "DCA") #TODO actually choose t/c and foil type
-incidenceStator, deflectionStator = calculate_incidence_deflection(alpha2, alpha1, solidityStator, thickToCord, "DCA") #TODO actually choose t/c and foil type
+print("beta and alpha:::", beta1*360/(2*np.pi), beta2*360/(2*np.pi), alpha1*360/(2*np.pi), alpha2*360/(2*np.pi))
+incidenceRotor, deflectionRotor = calculate_incidence_deflection(beta1*360/(2*np.pi), beta2*360/(2*np.pi), solidityRotor, thickToCord, "DCA") #TODO actually choose t/c and foil type
+incidenceStator, deflectionStator = calculate_incidence_deflection(alpha2*360/(2*np.pi), alpha1*360/(2*np.pi), solidityStator, thickToCord, "DCA") #TODO actually choose t/c and foil type
+print("Incidence, declection:::",incidenceRotor, deflectionRotor, incidenceStator, deflectionStator)
 
 # print(incidenceRotor,deflectionRotor)
 
