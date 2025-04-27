@@ -4,12 +4,12 @@ from scipy.optimize import fsolve
 
 
 #-------------------------------------------------------------
-Zrotor = 35
-Zstator = 28
+Zrotor = 21
+Zstator = 35
 
-blockage = 0.06
+blockage = 0.05
 
-bttTarget = 1.41
+bttTarget = 1.45
 #-------------------------------------------------------------
 
 alpha1 = 0
@@ -20,10 +20,10 @@ Minf = 0.78
 M1abs = 0.6  #[-]
 omega = 5000 #[rpm]
 
-hubToTip = 0.3
+hubToTip = 0.30
 mdot = 80 #[kg/s]
 thickToCord = 0.1
-twist = 1
+twist = 0.70
 
 
 
@@ -140,6 +140,8 @@ print("Incidence, declection:::",incidenceRotor, deflectionRotor, incidenceStato
 
 # print(incidenceRotor,deflectionRotor)
 
+psiOpt = 0.185 * np.sqrt(4*phi**2+1)
+psiMax = 0.32 + 0.2*phi
 
 #Run Meangen & Stagen
 dirPath = os.path.dirname(os.path.realpath(__file__))
@@ -159,6 +161,8 @@ print(f"rTip          [m]: {rTip:>10.2f}")
 print(f"mdot       [kg/s]: {mdot:>10.2f}")
 print(f"phi           [-]: {phi:>10.2f}")
 print(f"psi           [-]: {psi:>10.2f}")
+print(f"psiOpt        [-]: {psiOpt:>10.2f}")
+print(f"psiMax        [-]: {psiMax:>10.2f}")
 print(f"DOR           [-]: {DOR:>10.2f}")
 print(f"alpha1      [deg]: {np.degrees(alpha1):>10.2f}")
 print(f"beta1       [deg]: {np.degrees(beta1):>10.2f}")
@@ -210,3 +214,4 @@ run_meangen(path_of_user, round(P02[0]/1e5,3), round(T02[0],3), DOR, phi, psi, r
 input("Give any input to continue with multall execution")
 run_stagen(path_of_user)
 run_multall(path_of_user)
+
