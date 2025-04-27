@@ -5,12 +5,12 @@ import matplotlib.pylab as plt
 
 
 #-------------------------------------------------------------
-Zrotor = 21
-Zstator = 35
+Zrotor  = 17
+Zstator = 27
 
-blockage = 0.00
+blockage = 0.02
 
-bttTarget = 1.40
+bttTarget = 1.60
 #-------------------------------------------------------------
 
 alpha1 = 0
@@ -21,10 +21,10 @@ Minf = 0.78
 M1abs = 0.6  #[-]
 omega = 5000 #[rpm]
 
-hubToTip = 0.30
+hubToTip = 0.4
 mdot = 80 #[kg/s]
 thickToCord = 0.06
-twist = 0.55
+twist = 0.7
 
 
 Kv = 0.055 #https://elib.dlr.de/192376/1/ICAS2022_0497_paper.pdf page 20
@@ -76,6 +76,7 @@ for b in btts:
     etas.append(eta)
     
 plt.plot(btts,etas)
+# plt.show()
     
 
 
@@ -140,8 +141,8 @@ PitchOverCordStator = getPitchOverCord(
     angleOut=alpha1
 )
 
-Zrotor, CxRotor = getBladeNumberAndAxialCord(Zrotor,rMean,PitchOverCordRotor,rTip,T2,psi,phi)
-Zstator, CxStator = getBladeNumberAndAxialCord(Zstator,rMean,PitchOverCordStator,rTip, Trotor,psi,phi)
+Zrotor, CxRotor = getBladeNumberAndAxialCord(Zrotor,rMean,PitchOverCordRotor,rTip,T2,psi,phi,omega * 180 / np.pi / 60)
+Zstator, CxStator = getBladeNumberAndAxialCord(Zstator,rMean,PitchOverCordStator,rTip, Trotor,psi,phi,omega * 180 / np.pi / 60)
 
 # etaTtT, etaTtS = getStageEfficiencies(DeltaT, DeltaTis,C1mag)
 
@@ -169,8 +170,8 @@ aeroForceRotor  = getAeroForces(0.5*(ArotorIn+AstatorIn),Zrotor,P2,Protor,mdot,C
 aeroForceStator = getAeroForces(0.5*(AstatorIn+AstatorOut),Zstator,Protor,P3,mdot,C1mag,alpha2,alpha1)
 
 
-rotorBladeMass = (ArotorIn+AstatorIn) * 0.5 * CxRotor * Kv * rhoMat / Zrotor
-statorBladeMass = (AstatorIn+AstatorOut) * 0.5 * CxStator * Kv * rhoMat / Zstator
+rotorBladeMass = (ArotorIn+AstatorIn) * 0.5 * CxRotor * Kv * rhoMat / (Zrotor-1)
+statorBladeMass = (AstatorIn+AstatorOut) * 0.5 * CxStator * Kv * rhoMat / (Zstator-1)
 
 
 print( (omega * 2 * np.pi / 60))
@@ -248,6 +249,7 @@ print(f"Mass Stator  [kg]: {statorBladeMass[0]:>10.2f}")
 print(f"Faero Rotor   [N]: {aeroForceRotor[0]:>10.2f}")
 print(f"Faero Stator  [N]: {aeroForceStator[0]:>10.2f}")
 print(f"Fcent Rotor  [kN]: {centForceRotor[0]/1e3:>10.2f}")
+print(f"Total MAss   [kg]: {float(rotorBladeMass[0]*Zrotor+statorBladeMass[0]*Zstator):>10.2f}")
 # print(f"Fcent Stator [kN]: {centForceStator[0]/1e3:>10.2f}")
 print(f"-------------------------------------------------")
 

@@ -215,22 +215,23 @@ def getRelativeTotalPressureOfRotor(T0:float,Vabs:float,Vrel:float,p:float,k:flo
     h0rel = hstatic + 1/2 * Vrel**2
     return p * (h0rel/hstatic)**(k/(k-1))
 
-def getBladeNumberAndAxialCord(Z: float, Rmean: float, pitchOverCord: float, rTip: float, Tstatic: float, psi: float, phi: float, k: float = 1.4, R: float = 287.05 ):
-    # Mtip = (rTip * omega * 2 * np.pi / 60) / np.sqrt(k * R * Tstatic)
+def getBladeNumberAndAxialCord(Z: float, Rmean: float, pitchOverCord: float, rTip: float, Tstatic: float, psi: float, phi: float, omega:float, k: float = 1.4, R: float = 287.05 ):
+    Mtip = (rTip * omega * 2 * np.pi / 60) / np.sqrt(k * R * Tstatic)
 
-    # def system(X):
-    #     Cx = X[0]
-    #     Z  = X[1]
+    def system(X):
+        Cx = X[0]
+        Z  = X[1]
 
-    #     return [
-    #         float((2 * np.pi * Rmean / Z) / Cx - pitchOverCord),
-    #         float(Z * ( ( (Z * 1 / 2 / np.pi * np.sqrt((k-1)/k) * Cx / rTip * Mtip )**2 + 1  )**(k/(k-1)) - 1 ) - 2 * np.pi * k * rTip / Cx * psi * phi * Mtip**2)
+        return [
+            float((2 * np.pi * Rmean / Z) / Cx - pitchOverCord),
+            float(Z * ( ( (Z * 1 / 2 / np.pi * np.sqrt((k-1)/k) * Cx / rTip * Mtip )**2 + 1  )**(k/(k-1)) - 1 ) - 2 * np.pi * k * rTip / Cx * psi * phi * Mtip**2)
             
-    #     ]
+        ]
         
-    # X = fsolve(system,[10e-2,20])
-    # Z = round(X[1])
-    # Z = (X[1])
+    X = fsolve(system,[10e-2,20])
+    Zmin = round(X[1])
+    Zmin = (X[1])
+    print(f"Zmin: {Zmin}")
     Cx = (2 * np.pi * Rmean / Z ) / pitchOverCord 
     return Z, Cx
 

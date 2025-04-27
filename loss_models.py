@@ -37,7 +37,7 @@ def compute_eta(psi, phi, R, thick_to_chord):
     zeta_s_bl, zeta_r_bl = compute_denton_bl_losses(psi, phi, R)
     zeta_s_te, zeta_r_te = compute_TE_mixing_losses(thick_to_chord)
     zeta_S = zeta_s_bl + zeta_s_te
-    zeta_R = zeta_r_bl + zeta_s_te
+    zeta_R = zeta_r_bl + zeta_r_te
     term1 = zeta_R * (phi**2 + (R + psi / 2)**2)
     term2 = zeta_S * (phi**2 + (1 - R + psi / 2)**2)
     eta = 1 - (1 / (2 * psi)) * (term1 + term2)
