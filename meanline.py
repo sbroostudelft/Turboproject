@@ -233,3 +233,8 @@ def getBladeNumberAndAxialCord(Z: float, Rmean: float, pitchOverCord: float, rTi
     # Z = (X[1])
     Cx = (2 * np.pi * Rmean / Z ) / pitchOverCord 
     return Z, Cx
+
+def getAeroForces(A: float, Z: float, p1: float, p2:float, mdot:float, Caxial:float, angle1: float, angle2: float):
+    Fm =  A/Z * (p2-p1)
+    Ft =  mdot/Z * Caxial * (np.sin(angle1) - np.sin(angle2))
+    return np.sqrt(Fm**2 + Ft**2)

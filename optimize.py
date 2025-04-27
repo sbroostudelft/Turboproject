@@ -1,15 +1,16 @@
 from meanline import *
 from loss_models import *
 from scipy.optimize import fsolve
+import matplotlib.pylab as plt
 
 
 #-------------------------------------------------------------
 Zrotor = 21
 Zstator = 35
 
-blockage = 0.05
+blockage = 0.00
 
-bttTarget = 1.45
+bttTarget = 1.40
 #-------------------------------------------------------------
 
 alpha1 = 0
@@ -22,15 +23,19 @@ omega = 5000 #[rpm]
 
 hubToTip = 0.30
 mdot = 80 #[kg/s]
-thickToCord = 0.1
-twist = 0.70
+thickToCord = 0.06
+twist = 0.55
+
+
+Kv = 0.055 #https://elib.dlr.de/192376/1/ICAS2022_0497_paper.pdf page 20
+rhoMat = 4650
 
 
 
 #---------------------------------------------------------------------------------------------------------------------------
 
 
-def getDeterminePsi(psi):
+def getDeterminePsi(psi,bttTarget,optimize=True):
     T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf)
     C1mag = M1abs * np.sqrt(1.4 * 287 * Tinf)
     T2, P2, rho2 = getStaticProperties(C1mag,T02,P02)
@@ -56,18 +61,29 @@ def getDeterminePsi(psi):
         T0inlet=T02,
         p0Inlet=P02,
     )
+    if optimize:
+        return PRTotal - bttTarget
+    return etaIso
+
+
+#-------------------------------------------------------
+
+btts = list(np.arange(1.4,1.8,0.01))
+etas = []
+for b in btts:
+    psiL = fsolve(getDeterminePsi,0.5,args=(b))[0]
+    eta = getDeterminePsi(psiL,b,False)
+    etas.append(eta)
     
-    return PRTotal - bttTarget
-
-
-
+plt.plot(btts,etas)
+    
 
 
 
 
 # ---------------------------
 
-psi = fsolve(getDeterminePsi,0.5)[0]
+psi = fsolve(getDeterminePsi,0.5,args=(bttTarget))[0]
 
 T02, P02, rho02, Tinf, Pinf, rhoInf = getStagnationInletProperties(altitude,Minf)
 C1mag = M1abs * np.sqrt(1.4 * 287 * Tinf)
@@ -143,6 +159,26 @@ print("Incidence, declection:::",incidenceRotor, deflectionRotor, incidenceStato
 psiOpt = 0.185 * np.sqrt(4*phi**2+1)
 psiMax = 0.32 + 0.2*phi
 
+
+
+ArotorIn  = mdot/C1mag/rho2/(1-blockage)
+AstatorIn   = mdot/C1mag/rhoRotor/(1-blockage) 
+AstatorOut   = mdot/C1mag/rho3/(1-blockage) 
+
+aeroForceRotor  = getAeroForces(0.5*(ArotorIn+AstatorIn),Zrotor,P2,Protor,mdot,C1mag,beta1,beta2)
+aeroForceStator = getAeroForces(0.5*(AstatorIn+AstatorOut),Zstator,Protor,P3,mdot,C1mag,alpha2,alpha1)
+
+
+rotorBladeMass = (ArotorIn+AstatorIn) * 0.5 * CxRotor * Kv * rhoMat / Zrotor
+statorBladeMass = (AstatorIn+AstatorOut) * 0.5 * CxStator * Kv * rhoMat / Zstator
+
+
+print( (omega * 2 * np.pi / 60))
+
+centForceRotor = rotorBladeMass * rMean * (omega * 2 * np.pi / 60)**2
+# centForceStator = statorBladeMass * rMean * (omega * 2 * np.pi / 60)**2
+
+
 #Run Meangen & Stagen
 dirPath = os.path.dirname(os.path.realpath(__file__))
 
@@ -207,6 +243,12 @@ print(f"Z Rotor       [-]: {Zrotor:>10.2f}")
 print(f"Z Stator      [-]: {Zstator:>10.2f}")
 print(f"Cx Rotor      [m]: { CxRotor[0]:>10.2f}")
 print(f"Cx Stator     [m]: {CxStator[0]:>10.2f}")
+print(f"Mass Rotor   [kg]: {rotorBladeMass[0]:>10.2f}")
+print(f"Mass Stator  [kg]: {statorBladeMass[0]:>10.2f}")
+print(f"Faero Rotor   [N]: {aeroForceRotor[0]:>10.2f}")
+print(f"Faero Stator  [N]: {aeroForceStator[0]:>10.2f}")
+print(f"Fcent Rotor  [kN]: {centForceRotor[0]/1e3:>10.2f}")
+# print(f"Fcent Stator [kN]: {centForceStator[0]/1e3:>10.2f}")
 print(f"-------------------------------------------------")
 
 input("Give any input to continue with meangen execution")
