@@ -34,8 +34,8 @@ def run_meangen(path_of_user, P0_01, T0_01, R, PHI, PSI, rMean,mdot,incidence1, 
            0.2500       0.500 ROW GAP  AND STAGE GAP (fractions)
        {blockage}   {blockage}     BLOCKAGE FACTORS, FBLOCK_LE,  FBLOCK_TE
            {etaIso}             GUESS OF THE STAGE ISENTROPIC EFFICIENCY
-       5  5         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
-       -2  -2         FIRST AND SECOND ROW INCIDENCE ANGLES
+       {abs(deflection1)}  {abs(deflection2)}         ESTIMATE OF THE FIRST AND SECOND ROW DEVIATION ANGLES
+       {incidence1}  {incidence2}         FIRST AND SECOND ROW INCIDENCE ANGLES
        {twist}              BLADE TWIST OPTION, FRAC_TWIST (1 is free vortex, 0 is without twist)
     n                        BLADE ROTATION OPTION , Y or N
       90  90         QO ANGLES AT LE  AND TE OF ROW 1
